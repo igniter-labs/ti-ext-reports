@@ -1,0 +1,27 @@
+.query-builder {
+    .rules-list {
+        .control-selectlist {
+            min-width: 250px;
+        }
+
+        > :first-child::before {
+            top: -11px;
+        }
+    }
+
+    .rule-container, .rule-placeholder, .rules-group-container {
+        border-color: var(--bs-border-color);
+    }
+
+    .rule-container {
+        .rule-filter-container, .rule-operator-container, .rule-value-container {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+    }
+
+    .rule-value-container {
+        border-left: 0 none;
+        padding-left: 0;
+    }
+}

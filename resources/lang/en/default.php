@@ -1,0 +1,42 @@
+<?php
+
+return [
+    'text_title' => 'Report Builder',
+    'text_form_name' => 'Report Builder',
+    'text_permission_manage' => 'Manage Report Builder',
+    'text_empty' => 'No reports found, create a new report to get started.',
+    'text_7_days' => '7 Days',
+    'text_14_days' => '14 Days',
+    'text_30_days' => '30 Days',
+    'text_90_days' => '90 Days',
+    'text_365_days' => '1 Year',
+
+    'column_name' => 'Name',
+    'column_code' => 'Code',
+
+    'label_name' => 'Name',
+    'label_code' => 'Code',
+    'label_description' => 'Description',
+    'label_rules' => 'Rule filters',
+    'label_columns' => 'List & Export (CSV) Columns',
+    'label_rule_class' => 'Rule',
+
+    'label_location' => 'Location',
+    'label_report' => 'Report',
+    'label_customer_name' => 'Customer Name',
+    'label_email' => 'Email',
+    'label_customer_group' => 'Customer Group',
+    'label_date_added' => 'Date Added',
+    'label_order_date_relative' => 'Order Date Relative',
+    'label_order_date' => 'Order Date',
+    'label_order_time' => 'Order Time',
+    'label_order_type' => 'Order Type',
+    'label_delivery_address' => 'Delivery Address',
+    'label_categories' => 'Menu Categories',
+    'label_menus' => 'Menu items',
+
+    'help_report' => 'Select the report to display. You can build custom reports using the Report Builder.',
+    'help_rule_class' => 'Select the rule to apply for this report. This defines how the report will filter and display data. More options are available after you create the report builder.',
+    'help_rules' => 'Define the filters for the report and other conditions to shape the data displayed in the report.',
+    'help_columns' => 'Choose the columns to display in the reports view and include in CSV exports.',
+];

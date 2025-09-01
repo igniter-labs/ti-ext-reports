@@ -1,55 +1,45 @@
-:package_description
+<p align="center">
+    <a href="https://github.com/igniter-labs/ti-ext-reports/actions"><img src="https://github.com/igniter-labs/ti-ext-reports/actions/workflows/pipeline.yml/badge.svg" alt="Build Status"></a>
+    <a href="https://packagist.org/packages/igniterlabs/ti-ext-reports"><img src="https://img.shields.io/packagist/dt/igniterlabs/ti-ext-reports" alt="Total Downloads"></a>
+    <a href="https://packagist.org/packages/igniterlabs/ti-ext-reports"><img src="https://img.shields.io/packagist/v/igniterlabs/ti-ext-reports" alt="Latest Stable Version"></a>
+    <a href="https://packagist.org/packages/igniterlabs/ti-ext-reports"><img src="https://img.shields.io/packagist/l/igniterlabs/ti-ext-reports" alt="License"></a>
+</p>
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![Tests](https://github.com/:vendor_slug/:package_slug/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/:vendor_slug/:package_slug/actions/workflows/run-tests.yml)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
----
-This package can be used as to scaffold a TastyIgniter extension. Follow these steps to get started:
+## Introduction
 
-- Press the `Use template` button at the top of this repo to create a new repo with the contents of this skeleton
-- Run `php ./configure.php` to run a script that will replace all placeholders throughout all the files
-- Have fun creating your extension.
+The TastyIgniter Reports extension provides a powerful reporting and analytics tool for TastyIgniter, allowing restaurant owners to generate custom reports, analyze data, and gain insights into their business performance. This extension includes a dashboard with various widgets for high-level overviews and a query builder for creating custom queries.
 
-Inspired by [Spatie's PHP Package Skeleton](https://github.com/spatie/package-skeleton-php)
----
-<!--/delete-->
-This is where your description should go. Try and limit it to a paragraph or two. Consider adding a small example.
+## Features
 
-### Installation
+- View daily, weekly, or monthly sales totals at a glance.
+- Visualize sales patterns over time to identify growth or slow periods.
+- Analyze individual orders by date, type, location, or staff.
+- See revenue split by cash, card, online payments, etc.
+- Discover top-selling items and categories driving revenue.
+- Easily export reports for further analysis or record-keeping.
+- Create custom queries to filter and analyze data based on specific criteria.
+- Clean, easy-to-read layout for busy managers.
 
-You can install the extension via composer:
+## Documentation
 
-```bash
-composer require :vendor_slug/:package_slug
-```
+More documentation can be found on [here](https://github.com/igniter-labs/ti-ext-reports/blob/master/docs/index.md).
 
-### Usage
+## Changelog
 
-### Testing
+Please see [CHANGELOG](https://github.com/igniter-labs/ti-ext-reports/blob/master/CHANGELOG.md) for more information on what has changed recently.
 
-```bash
-composer test
-```
+## Reporting issues
 
-### Contributing
+If you encounter a bug in this extension, please report it using the [Issue Tracker](https://github.com/igniter-labs/ti-ext-reports/issues) on GitHub.
 
-Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
+## Contributing
 
-### Code of Conduct
+Contributions are welcome! Please read [TastyIgniter's contributing guide](https://tastyigniter.com/docs/resources/contribution-guide).
 
-In order to ensure that the [TastyIgniter community](https://forum.tastyigniter.com) is welcoming to all, please review
-and abide by the [Code of Conduct](https://tastyigniter.com/docs/code-of-conduct).
+## Security vulnerabilities
 
-### Security Vulnerabilities
+For reporting security vulnerabilities, please see [our security policy](https://github.com/igniter-labs/ti-ext-reports/security/policy).
 
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+## License
 
-### Credits
-
-- [:author_name](https://github.com/:author_username)
-- [All Contributors](../../contributors)
-
-### License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+TastyIgniter Reports extension is open-source software licensed under the [MIT license](https://github.com/igniter-labs/ti-ext-reports/blob/master/LICENSE.md).
