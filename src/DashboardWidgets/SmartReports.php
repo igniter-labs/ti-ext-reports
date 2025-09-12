@@ -19,9 +19,9 @@ class SmartReports extends BaseDashboardWidget
      */
     protected string $defaultAlias = 'smartreports';
 
-    protected ?BaseRule $reportRule;
+    protected ?BaseRule $reportRule = null;
 
-    protected ?ReportBuilder $reportBuilder;
+    protected ?ReportBuilder $reportBuilder = null;
 
     protected ?BaseFormWidget $dataTableWidget;
 
@@ -53,6 +53,12 @@ class SmartReports extends BaseDashboardWidget
     public function defineProperties(): array
     {
         return [
+            'widget_title' => [
+                'label' => 'admin::lang.dashboard.label_widget_title',
+                'default' => 'lang:igniterlabs.reports::default.text_smart_reports',
+                'type' => 'text',
+                'validationRule' => 'nullable|string',
+            ],
             'report' => [
                 'label' => 'lang:igniterlabs.reports::default.label_report',
                 'type' => 'select',
@@ -98,6 +104,7 @@ class SmartReports extends BaseDashboardWidget
     protected function prepareVars()
     {
         $this->vars['dataTableWidget'] = $this->dataTableWidget;
+        $this->vars['widgetTitle'] = $this->property('widget_title');
     }
 
     public function onFetchReport()

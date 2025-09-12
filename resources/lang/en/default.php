@@ -16,6 +16,7 @@ return [
     'text_chart_bar' => 'Bar',
     'text_chart_pie' => 'Pie',
     'chart_type' => 'Chart Type',
+    'text_smart_reports' => 'Smart Reports',
 
 
     'column_name' => 'Name',
