@@ -139,11 +139,22 @@ class OrderRule extends BaseRule
     public function defineColumns(): array
     {
         return [
-            'customer_name' => lang('igniterlabs.reports::default.label_customer_name'),
-            'email' => lang('igniterlabs.reports::default.label_email'),
-            'order_total' => lang('igniterlabs.reports::default.label_order_date_relative'),
-            'order_date' => lang('igniterlabs.reports::default.label_order_date'),
-            'order_type' => lang('igniterlabs.reports::default.label_order_type'),
+            'customer_name' => [
+                'title' => lang('igniterlabs.reports::default.label_customer_name')
+            ],
+            'email' => [
+                'title' => lang('igniterlabs.reports::default.label_email')
+            ],
+            'order_total' => [
+                'title' => lang('igniterlabs.reports::default.label_order_date_relative')
+            ],
+            'order_date' => [
+                'title' => lang('igniterlabs.reports::default.label_order_date'),
+                'type' => 'date',
+            ],
+            'order_type' => [
+                'title' => lang('igniterlabs.reports::default.label_order_type')
+            ],
         ];
     }
 

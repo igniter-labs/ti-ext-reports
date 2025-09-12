@@ -10,6 +10,13 @@ return [
     'text_30_days' => '30 Days',
     'text_90_days' => '90 Days',
     'text_365_days' => '1 Year',
+    'text_type_table' => 'Table',
+    'text_type_chart' => 'Chart',
+    'text_chart_line' => 'Line',
+    'text_chart_bar' => 'Bar',
+    'text_chart_pie' => 'Pie',
+    'chart_type' => 'Chart Type',
+
 
     'column_name' => 'Name',
     'column_code' => 'Code',
@@ -20,6 +27,8 @@ return [
     'label_rules' => 'Rule filters',
     'label_columns' => 'List & Export (CSV) Columns',
     'label_rule_class' => 'Rule',
+    'label_chart_type' => 'Chart Type',
+    'label_type' => 'Type',
 
     'label_location' => 'Location',
     'label_report' => 'Report',

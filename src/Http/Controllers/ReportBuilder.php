@@ -70,7 +70,8 @@ class ReportBuilder extends AdminController
         }
 
         $reportRule = resolve(Manager::class)->getRule($form->model->rule_class);
-        $form->fields['columns']['options'] = collect($reportRule?->defineColumns() ?? [])->all();
+        $form->fields['columns']['options'] = collect($reportRule?->defineColumns() ?? [])
+            ->mapWithKeys(fn($column, $key) => [$key => array_get($column, 'title')])->toArray();
     }
 
     public function formExtendFields(Form $form): void

@@ -5,5 +5,5 @@
     data-alias="{{ $this->alias }}"
     data-toolbar="false"
 >
-    {{ $dataTableWidget?->render() }}
+    {!! $dataTableWidget?->render() !!}
 </div>

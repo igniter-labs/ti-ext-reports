@@ -3,6 +3,7 @@
 namespace IgniterLabs\Reports\DashboardWidgets;
 
 use Igniter\Admin\Classes\BaseDashboardWidget;
+use Igniter\Admin\Classes\BaseFormWidget;
 use Igniter\Admin\FormWidgets\DataTable;
 use Igniter\Local\Traits\LocationAwareWidget;
 use IgniterLabs\Reports\Classes\BaseRule;
@@ -18,7 +19,11 @@ class SmartReports extends BaseDashboardWidget
      */
     protected string $defaultAlias = 'smartreports';
 
-    protected ?BaseRule $reportRule = null;
+    protected ?BaseRule $reportRule;
+
+    protected ?ReportBuilder $reportBuilder;
+
+    protected ?BaseFormWidget $dataTableWidget;
 
     public function __construct($controller, $properties = [])
     {
@@ -27,6 +32,12 @@ class SmartReports extends BaseDashboardWidget
         }
 
         parent::__construct($controller, $properties);
+    }
+
+    public function initialize(): void
+    {
+        $this->loadReport();
+        $this->dataTableWidget = $this->makeDataTableWidget();
     }
 
     /**
@@ -49,6 +60,30 @@ class SmartReports extends BaseDashboardWidget
                 'options' => ReportBuilder::getDropdownOptions(...),
                 'validationRule' => 'required|string',
             ],
+            'type' => [
+                'label' => 'lang:igniterlabs.reports::default.label_type',
+                'type' => 'select',
+                'options' => [
+                    'table' => 'lang:igniterlabs.reports::default.text_type_table',
+                    'chart' => 'lang:igniterlabs.reports::default.text_type_chart',
+                ],
+                'validationRule' => 'required|string|in:table',
+            ],
+            'chart_type' => [
+                'label' => 'lang:igniterlabs.reports::default.label_chart_type',
+                'type' => 'select',
+                'options' => [
+                    'line' => 'lang:igniterlabs.reports::default.text_chart_line',
+                    'bar' => 'lang:igniterlabs.reports::default.text_chart_bar',
+                    'pie' => 'lang:igniterlabs.reports::default.text_chart_pie',
+                ],
+                'validationRule' => 'nullable|string|in:line,bar,pie,doughnut',
+                'trigger' => [
+                    'action' => 'show',
+                    'field' => 'type',
+                    'condition' => 'value[chart]',
+                ]
+            ],
         ];
     }
 
@@ -56,24 +91,24 @@ class SmartReports extends BaseDashboardWidget
     {
         $this->addCss('igniterlabs.reports::/css/smartreports.css', 'smartreports-css');
         $this->addJs('igniterlabs.reports::/js/smartreports.js', 'smartreports-js');
+        $this->addCss('widgets/table.css', 'table-css');
+        $this->addJs('widgets/table.js', 'table-js');
     }
 
     protected function prepareVars()
     {
-        $this->loadReportRule();
-
-        $this->vars['dataTableWidget'] = $this->makeDataTableWidget();
+        $this->vars['dataTableWidget'] = $this->dataTableWidget;
     }
 
     public function onFetchReport()
     {
-        $this->loadReportRule();
+        $this->loadReport();
 
         $start = $this->getStartDate();
         $end = $this->getEndDate();
 
         return [
-            'data' => $this->reportRule->fetchReport($start, $end),
+            'data' => $this->reportRule->getReportQuery($start, $end),
         ];
     }
 
@@ -95,24 +130,18 @@ class SmartReports extends BaseDashboardWidget
         return $this->property('endDate');
     }
 
-    protected function loadReportRule(): ?BaseRule
+    protected function loadReport(): void
     {
-        if ($this->reportRule) {
-            return $this->reportRule;
+        if ($reportBuilderId = $this->property('report')) {
+            $this->reportBuilder = ReportBuilder::find($reportBuilderId);
         }
 
-        if (!$reportBuilderId = $this->property('report')) {
-            return null;
+        if ($this->reportBuilder) {
+            $this->reportRule = resolve(Manager::class)->getRule($this->reportBuilder->rule_class);
         }
-
-        if (!$reportBuilder = ReportBuilder::find($reportBuilderId)) {
-            return null;
-        }
-
-        return $this->reportRule = resolve(Manager::class)->getRule($reportBuilder->rule_class);
     }
 
-    protected function makeDataTableWidget()
+    protected function makeDataTableWidget(): ?BaseFormWidget
     {
         if (!$this->reportRule) {
             return null;
@@ -123,14 +152,16 @@ class SmartReports extends BaseDashboardWidget
             'label' => lang('igniterlabs.reports::default.label_report_table'),
         ], [
             'model' => new ReportBuilder,
-            'columns' => $this->reportRule->defineColumns(),
+            'columns' => $this->reportRule->getSelectedColumns($this->reportBuilder->columns),
+            'useAjax' => true,
+            'alias' => $this->alias . 'ReportTable',
+            'pageLimit' => 5,
         ]);
 
         $dataTableWidget->getTable()->unbindEvent(['table.getRecords', 'table.getDropdownOptions']);
-        $dataTableWidget->getTable()->bindEvent('table.getRecords', function(int $offset, int $limit, string $search) {
+        $dataTableWidget->getTable()->bindEvent('table.getRecords', function (int $offset, int $limit, string $search) {
             $page = ($offset / $limit) + 1;
-
-            $query = $this->reportRule->fetchReport(
+            $query = $this->reportRule->getReportQuery(
                 $this->getStartDate(),
                 $this->getEndDate(),
             );

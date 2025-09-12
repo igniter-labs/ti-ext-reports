@@ -23,7 +23,7 @@ class CustomerRule extends BaseRule
 
     public function defineColumns(): array
     {
-        // TODO: Implement defineColumns() method.
+        return [];
     }
 
     public function getReportQuery(Carbon $start, Carbon $end): Builder
