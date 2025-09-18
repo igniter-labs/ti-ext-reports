@@ -8,6 +8,7 @@ use Igniter\User\Models\Customer;
 use IgniterLabs\Reports\Classes\Manager;
 use IgniterLabs\Reports\DashboardWidgets\SmartReports;
 use IgniterLabs\Reports\FormWidgets\ReportEditor;
+use IgniterLabs\Reports\Listeners\ExtendDashboardCharts;
 use IgniterLabs\Reports\ReportRules\CustomerRule;
 use IgniterLabs\Reports\ReportRules\OrderRule;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,10 @@ class Extension extends BaseExtension
         Manager::class,
     ];
 
-    public function boot() {}
+    public function boot()
+    {
+        resolve(ExtendDashboardCharts::class)->registerCharts();
+    }
 
     public function registerFormWidgets(): array
     {

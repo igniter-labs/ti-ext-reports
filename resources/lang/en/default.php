@@ -17,6 +17,10 @@ return [
     'text_chart_pie' => 'Pie',
     'chart_type' => 'Chart Type',
     'text_smart_reports' => 'Smart Reports',
+    'text_top_customers' => 'Top Customers',
+    'text_bottom_customers' => 'Bottom Customers',
+    'text_best_selling_items' => 'Best Selling Items',
+    'text_worst_selling_items' => 'Worst Selling Items',
 
 
     'column_name' => 'Name',
@@ -44,6 +48,16 @@ return [
     'label_delivery_address' => 'Delivery Address',
     'label_categories' => 'Menu Categories',
     'label_menus' => 'Menu items',
+    'label_created_at' => 'Created At',
+    'label_telephone' => 'Telephone',
+    'label_address' => 'Address',
+    'label_ip_address' => 'IP Address',
+    'label_status' => 'Status',
+    'label_first_name' => 'First Name',
+    'label_last_name' => 'Last Name',
+    'label_date_relative' => 'Date Relative',
+    'label_order_total' => 'Order Total',
+    'label_order_count' => 'Order Count',
 
     'help_report' => 'Select the report to display. You can build custom reports using the Report Builder.',
     'help_rule_class' => 'Select the rule to apply for this report. This defines how the report will filter and display data. More options are available after you create the report builder.',

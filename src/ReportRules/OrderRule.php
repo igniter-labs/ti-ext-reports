@@ -146,7 +146,7 @@ class OrderRule extends BaseRule
                 'title' => lang('igniterlabs.reports::default.label_email')
             ],
             'order_total' => [
-                'title' => lang('igniterlabs.reports::default.label_order_date_relative')
+                'title' => lang('igniterlabs.reports::default.label_order_total')
             ],
             'order_date' => [
                 'title' => lang('igniterlabs.reports::default.label_order_date'),
@@ -158,7 +158,7 @@ class OrderRule extends BaseRule
         ];
     }
 
-    public function getReportQuery(Carbon $start, Carbon $end): Builder
+    public function getReportQuery(Carbon|\Carbon\Carbon $start, Carbon|\Carbon\Carbon $end): Builder
     {
         return Order::query()->whereBetween('order_date', [$start, $end]);
     }
