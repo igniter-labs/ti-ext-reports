@@ -10,7 +10,11 @@ use IgniterLabs\Reports\DashboardWidgets\SmartReports;
 use IgniterLabs\Reports\FormWidgets\ReportEditor;
 use IgniterLabs\Reports\Listeners\ExtendDashboardCharts;
 use IgniterLabs\Reports\ReportRules\CustomerRule;
+use IgniterLabs\Reports\ReportRules\DiscountBreakdownRule;
+use IgniterLabs\Reports\ReportRules\HourlySalesReportRule;
+use IgniterLabs\Reports\ReportRules\MenuItemsReportRule;
 use IgniterLabs\Reports\ReportRules\OrderRule;
+use IgniterLabs\Reports\ReportRules\OrderTransactionsRule;
 use Illuminate\Support\Facades\DB;
 
 class Extension extends BaseExtension
@@ -76,6 +80,10 @@ class Extension extends BaseExtension
         return [
             CustomerRule::class,
             OrderRule::class,
+            HourlySalesReportRule::class,
+            MenuItemsReportRule::class,
+            OrderTransactionsRule::class,
+            DiscountBreakdownRule::class,
         ];
     }
 

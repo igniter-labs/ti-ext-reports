@@ -10,5 +10,10 @@
             {{ $widgetTitle }}
         </h6>
     @endif
-    {!! $dataTableWidget?->render() !!}
+
+        @if($dataTableWidget)
+            {!! $dataTableWidget->render() !!}
+        @else
+            <p class="text-muted">{{ lang('igniterlabs.reports::default.text_no_report_available_to_display') }}</p>
+        @endif
 </div>

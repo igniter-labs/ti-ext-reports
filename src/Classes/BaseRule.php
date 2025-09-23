@@ -2,11 +2,14 @@
 
 namespace IgniterLabs\Reports\Classes;
 
-use Igniter\Flame\Database\Builder;
-use Illuminate\Support\Carbon;
+use Igniter\Local\Traits\LocationAwareWidget;
+use Illuminate\Database\Eloquent\Builder;
+use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 abstract class BaseRule
 {
+    use LocationAwareWidget;
     abstract public function ruleDetails(): array;
 
     abstract public function defineFilters(): array;
@@ -54,5 +57,10 @@ abstract class BaseRule
             'greater', 'greater_or_equal',
             'between', 'not_between',
         ];
+    }
+
+    public function getTableData(Carbon $start, Carbon $end, int $pageLimit = 5, $currentPage = null): LengthAwarePaginator
+    {
+        return $this->getReportQuery($start, $end)->paginate($pageLimit, ['*'], 'page', $currentPage);
     }
 }

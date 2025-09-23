@@ -3,10 +3,10 @@
 namespace IgniterLabs\Reports\ReportRules;
 
 use Igniter\Cart\Models\Order;
-use Igniter\Flame\Database\Builder;
 use Igniter\User\Models\Customer;
 use IgniterLabs\Reports\Classes\BaseRule;
-use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class CustomerRule extends BaseRule
