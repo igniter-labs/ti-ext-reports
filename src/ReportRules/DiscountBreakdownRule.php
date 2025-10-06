@@ -10,6 +10,7 @@ use IgniterLabs\Reports\Classes\BaseRule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class DiscountBreakdownRule extends BaseRule
 {
@@ -69,7 +70,7 @@ class DiscountBreakdownRule extends BaseRule
         ];
     }
 
-    public function getReportQuery(Carbon $start, Carbon $end): Builder
+    public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
     {
         $menuTable = DB::getTablePrefix() . (new Menu)->getTable();
         $couponMenuTable = DB::getTablePrefix() . 'igniter_coupon_menus';
@@ -79,7 +80,8 @@ class DiscountBreakdownRule extends BaseRule
         $query = CouponHistory::query();
         $this->locationApplyScope($query);
 
-        return $query
+
+        $baseQuery = $query
             ->whereBetween('igniter_coupons_history.created_at', [
                 Carbon::parse("01/01/2024"),
 //                $start,
@@ -95,11 +97,13 @@ class DiscountBreakdownRule extends BaseRule
             ->leftJoin(DB::raw($couponMenuTable), DB::raw("$couponMenuTable.coupon_id"), '=', DB::raw("$couponHistoryTable.coupon_id"))
             ->leftJoin("menus", 'menus.menu_id', '=', DB::raw("$couponMenuTable.menu_id"))
             ->groupBy('igniter_coupons_history.coupon_history_id');
+
+        return DB::query()->fromSub($baseQuery, 'discount_breakdown');
     }
 
-    public function getTableData(Carbon $start, Carbon $end, int $pageLimit = 5, $currentPage = null): LengthAwarePaginator
+    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
-        return parent::getTableData($start, $end, $pageLimit, $currentPage)->through(function ($report) {
+        return $paginatedQuery->through(function ($report) {
             return [
                 'coupon_name' => $report->coupon_name,
                 'menu_name' => $report->menu_name,

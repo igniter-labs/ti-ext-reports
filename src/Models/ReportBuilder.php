@@ -2,9 +2,13 @@
 
 namespace IgniterLabs\Reports\Models;
 
+use Carbon\Carbon;
 use Igniter\Flame\Database\Model;
 use IgniterLabs\Reports\Classes\BaseRule;
 use IgniterLabs\Reports\Classes\Manager;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Eloquent\Builder;
+use timgws\QueryBuilderParser;
 
 class ReportBuilder extends Model
 {
@@ -29,5 +33,36 @@ class ReportBuilder extends Model
         return collect(resolve(Manager::class)->loadRules())->mapWithKeys(function(BaseRule $ruleObject, $className) {
             return [$className => array_get($ruleObject->ruleDetails(), 'name')];
         });
+    }
+
+    public function getQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
+    {
+        $ruleClass = $this->rule_class;
+        $this->validateRuleClass($ruleClass);
+
+        $ruleObject = resolve($ruleClass);
+
+        $reportQuery = $ruleObject->getReportQuery($start, $end);
+        if ($this->rule_data && is_array($this->rule_data)) {
+            return (new QueryBuilderParser())->parse($this->getRawOriginal('rule_data'), $reportQuery);
+        }
+
+        return $reportQuery;
+    }
+
+    public function getTableData($start, $end, $pageLimit = 5, $currentPage = null)
+    {
+        $ruleClass = $this->rule_class;
+        $this->validateRuleClass($ruleClass);
+
+        return $this->rule_class::mapTableData(
+            $this->getQuery($start, $end)->paginate($pageLimit, ['*'], 'page', $currentPage)
+        );
+    }
+
+    public function validateRuleClass(string $className)
+    {
+        if (!class_exists($className))
+            throw new \Exception(sprintf(lang('igniterlabs.reports::default.alert_report_rule_class_not_found'), $className));
     }
 }

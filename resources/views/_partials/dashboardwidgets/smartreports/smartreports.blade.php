@@ -11,8 +11,8 @@
         </h6>
     @endif
 
-        @if($dataTableWidget)
-            {!! $dataTableWidget->render() !!}
+        @if($widget)
+            {!! $widget->render() !!}
         @else
             <p class="text-muted">{{ lang('igniterlabs.reports::default.text_no_report_available_to_display') }}</p>
         @endif

@@ -23,7 +23,7 @@ class SmartReports extends BaseDashboardWidget
 
     protected ?ReportBuilder $reportBuilder = null;
 
-    protected ?BaseFormWidget $dataTableWidget;
+    protected ?BaseFormWidget $smartWidget;
 
     public function __construct($controller, $properties = [])
     {
@@ -37,7 +37,7 @@ class SmartReports extends BaseDashboardWidget
     public function initialize(): void
     {
         $this->loadReport();
-        $this->dataTableWidget = $this->makeDataTableWidget();
+        $this->smartWidget = $this->reportRule ? $this->makeDataTableWidget() : null;
     }
 
     /**
@@ -53,12 +53,6 @@ class SmartReports extends BaseDashboardWidget
     public function defineProperties(): array
     {
         return [
-            'widget_title' => [
-                'label' => 'admin::lang.dashboard.label_widget_title',
-                'default' => lang('igniterlabs.reports::default.text_smart_reports'),
-                'type' => 'text',
-                'validationRule' => 'nullable|string',
-            ],
             'report' => [
                 'label' => 'lang:igniterlabs.reports::default.label_report',
                 'type' => 'select',
@@ -66,31 +60,13 @@ class SmartReports extends BaseDashboardWidget
                 'options' => ReportBuilder::getDropdownOptions(...),
                 'validationRule' => 'required|string',
             ],
-            'type' => [
-                'label' => 'lang:igniterlabs.reports::default.label_type',
-                'type' => 'select',
-                'options' => [
-                    'table' => 'lang:igniterlabs.reports::default.text_type_table',
-                    'chart' => 'lang:igniterlabs.reports::default.text_type_chart',
-                ],
-                'validationRule' => 'required|string|in:table',
-            ],
-            'chart_type' => [
-                'label' => 'lang:igniterlabs.reports::default.label_chart_type',
-                'type' => 'select',
-                'options' => [
-                    'line' => 'lang:igniterlabs.reports::default.text_chart_line',
-                    'bar' => 'lang:igniterlabs.reports::default.text_chart_bar',
-                    'pie' => 'lang:igniterlabs.reports::default.text_chart_pie',
-                ],
-                'validationRule' => 'nullable|string|in:line,bar,pie,doughnut',
-                'trigger' => [
-                    'action' => 'show',
-                    'field' => 'type',
-                    'condition' => 'value[chart]',
-                ]
-            ],
         ];
+    }
+
+    protected function prepareVars()
+    {
+        $this->vars['widget'] = $this->smartWidget;
+        $this->vars['widgetTitle'] = $this->reportBuilder?->name;
     }
 
     public function loadAssets()
@@ -99,12 +75,6 @@ class SmartReports extends BaseDashboardWidget
         $this->addJs('igniterlabs.reports::/js/smartreports.js', 'smartreports-js');
         $this->addCss('widgets/table.css', 'table-css');
         $this->addJs('widgets/table.js', 'table-js');
-    }
-
-    protected function prepareVars()
-    {
-        $this->vars['dataTableWidget'] = $this->dataTableWidget;
-        $this->vars['widgetTitle'] = $this->property('widget_title');
     }
 
     public function getStartDate(): mixed
@@ -138,29 +108,24 @@ class SmartReports extends BaseDashboardWidget
 
     protected function makeDataTableWidget(): ?BaseFormWidget
     {
-        if (!$reportRule = $this->reportRule) {
-            return null;
-        }
-
         $dataTableWidget = $this->makeFormWidget(DataTable::class, [
-            'name' => 'reportTable',
+            'name' => 'reportTable' . $this->reportBuilder->code,
             'label' => lang('igniterlabs.reports::default.label_report_table'),
         ], [
             'model' => new ReportBuilder,
-            'columns' => $reportRule->defineColumns(),
+            'columns' => $this->reportRule->defineColumns(),
             'useAjax' => true,
             'alias' => $this->alias . 'ReportTable',
         ]);
 
         $dataTableWidget->getTable()->unbindEvent(['table.getRecords', 'table.getDropdownOptions']);
-        $dataTableWidget->getTable()->bindEvent('table.getRecords', function (int $offset, int $limit, string $search) use ($reportRule) {
-            return $reportRule->getTableData(
-                $this->getStartDate(),
-                $this->getEndDate(),
-                $limit,
-                ($offset / $limit) + 1
+        $dataTableWidget->getTable()->bindEvent('table.getRecords', function (int $offset, int $limit, string $search) {
+            return $this->reportBuilder->getTableData(
+                $this->getStartDate(), $this->getEndDate(), $limit, ($offset / $limit) + 1
             );
         });
+
+        $dataTableWidget->bindToController();
 
         return $dataTableWidget;
     }

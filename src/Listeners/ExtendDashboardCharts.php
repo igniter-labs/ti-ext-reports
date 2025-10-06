@@ -8,6 +8,9 @@ use Igniter\Cart\Models\Order;
 use Igniter\Cart\Models\OrderMenu;
 use Igniter\Local\Traits\LocationAwareWidget;
 use Igniter\User\Models\Customer;
+use IgniterLabs\Reports\ReportRules\HourlySalesReportRule;
+use IgniterLabs\Reports\ReportRules\MenuItemsReportRule;
+use IgniterLabs\Reports\ReportRules\OrderTransactionsRule;
 use Illuminate\Support\Facades\DB;
 
 class ExtendDashboardCharts
@@ -42,6 +45,24 @@ class ExtendDashboardCharts
                     'icon' => 'fa fa-box-open',
                     'datasetFrom' => $this->getDatasetConfig(...)
                 ]);
+                $charts->addDataset('hourly_sales_report', [
+                    'label' => 'igniterlabs.reports::default.text_hourly_sales_report_title',
+                    'type' => 'bar',
+                    'icon' => 'fa fa-chart-line',
+                    'datasetFrom' => $this->getDatasetConfig(...)
+                ]);
+                $charts->addDataset('menu_items_report', [
+                    'label' => 'igniterlabs.reports::default.text_menu_items_report_title',
+                    'type' => 'bar',
+                    'icon' => 'fa fa-boxes',
+                    'datasetFrom' => $this->getDatasetConfig(...)
+                ]);
+                $charts->addDataset('order_transactions', [
+                    'label' => 'igniterlabs.reports::default.text_order_transactions_title',
+                    'type' => 'bar',
+                    'icon' => 'fa fa-receipt',
+                    'datasetFrom' => $this->getDatasetConfig(...)
+                ]);
             });
 
         });
@@ -54,6 +75,9 @@ class ExtendDashboardCharts
             'bottom_customers' => $this->getBottomCustomersDataset($start, $end),
             'best_selling_items' => $this->getBestSellingItemsDataset($start, $end),
             'worst_selling_items' => $this->getWorstSellingItemsDataset($start, $end),
+            'hourly_sales_report' => (new HourlySalesReportRule)->getChartDataset($start, $end),
+            'menu_items_report' => (new MenuItemsReportRule)->getChartDataset($start, $end),
+            'order_transactions' => (new OrderTransactionsRule)->getChartDataset($start, $end),
             default => [],
         };
     }

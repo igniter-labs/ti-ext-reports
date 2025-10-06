@@ -5,12 +5,12 @@ namespace IgniterLabs\Reports\ReportRules;
 use Igniter\Cart\Models\Category;
 use Igniter\Cart\Models\Menu;
 use Igniter\Cart\Models\Order;
-use Igniter\Flame\Database\Builder;
 use Igniter\Local\Facades\Location;
 use Igniter\Local\Models\Location as LocationModel;
 use Igniter\User\Facades\AdminAuth;
 use Igniter\User\Models\CustomerGroup;
 use IgniterLabs\Reports\Classes\BaseRule;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 class OrderRule extends BaseRule

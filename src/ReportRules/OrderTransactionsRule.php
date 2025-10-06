@@ -12,6 +12,7 @@ use IgniterLabs\Reports\Classes\BaseRule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class OrderTransactionsRule extends BaseRule
 {
@@ -110,7 +111,7 @@ class OrderTransactionsRule extends BaseRule
         ];
     }
 
-    public function getReportQuery(Carbon $start, Carbon $end): Builder
+    public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
     {
         $orderTable = DB::getTablePrefix() . (new Order)->getTable();
         $orderMenuTable = DB::getTablePrefix() . (new OrderMenu)->getTable();
@@ -119,7 +120,7 @@ class OrderTransactionsRule extends BaseRule
         $query = OrderMenu::query();
         $this->locationApplyScope($query);
 
-        return $query
+        $baseQuery = $query
             ->whereBetween('order_date', [
                 Carbon::parse("01/01/2024"),
 //                $start,
@@ -141,11 +142,13 @@ class OrderTransactionsRule extends BaseRule
             ->leftJoin('statuses', 'statuses.status_id', '=', 'orders.status_id')
             ->leftJoin('payments', 'payments.code', '=', 'orders.payment')
             ->groupBy('order_menus.order_menu_id');
+
+        return DB::query()->fromSub($baseQuery, 'order_transactions');
     }
 
-    public function getTableData(Carbon $start, Carbon $end, int $pageLimit = 5, $currentPage = null): LengthAwarePaginator
+    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
-        return parent::getTableData($start, $end, $pageLimit, $currentPage)->through(function ($report) {
+        return $paginatedQuery->through(function ($report) {
             return [
                 'menu_item' => $report->menu_item,
                 'order_id' => $report->order_id,
@@ -157,6 +160,22 @@ class OrderTransactionsRule extends BaseRule
                 'payment' => $report->payment_name,
             ];
         });
+    }
+
+    public function getChartDataset(Carbon $start, Carbon $end): array
+    {
+        $results = $this->getReportQuery($start, $end)->groupBy('menu_id')->get();
+
+        return [
+            'labels' => $results->map(fn($item) => ($item->menu_item))->all(),
+            'datasets' => [
+                [
+                    'backgroundColor' => $results->map(fn($item): string => $this->generateBackgroundColor(
+                        (string)$item->menu_item))->all(),
+                    'data' => $results->map(fn($item) => (int)$item->amount)->all()
+                ]
+            ],
+        ];
     }
 
     protected function getStatusList(): array

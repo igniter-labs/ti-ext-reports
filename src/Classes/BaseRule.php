@@ -6,6 +6,7 @@ use Igniter\Local\Traits\LocationAwareWidget;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 abstract class BaseRule
 {
@@ -16,7 +17,7 @@ abstract class BaseRule
 
     abstract public function defineColumns(): array;
 
-    abstract public function getReportQuery(Carbon $start, Carbon $end): Builder;
+    abstract public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder;
 
     public function getSelectedColumns(array $selectedColumns): array
     {
@@ -59,8 +60,18 @@ abstract class BaseRule
         ];
     }
 
-    public function getTableData(Carbon $start, Carbon $end, int $pageLimit = 5, $currentPage = null): LengthAwarePaginator
+    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
-        return $this->getReportQuery($start, $end)->paginate($pageLimit, ['*'], 'page', $currentPage);
+        return $paginatedQuery;
+    }
+
+    public function getChartDataset(Carbon $start, Carbon $end): array
+    {
+        return [];
+    }
+
+    protected function generateBackgroundColor(string $string): string
+    {
+        return sprintf('hsl(%s, 70%%, 60%%)', crc32('background-color-' . $string) % 360);
     }
 }

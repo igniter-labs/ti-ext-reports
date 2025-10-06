@@ -8,6 +8,7 @@ use Igniter\Cart\Models\Order;
 use IgniterLabs\Reports\Classes\BaseRule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
 class MenuItemsReportRule extends BaseRule
@@ -75,7 +76,7 @@ class MenuItemsReportRule extends BaseRule
         ];
     }
 
-    public function getReportQuery(Carbon $start, Carbon $end): Builder
+    public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
     {
         $orderTable = DB::getTablePrefix() . (new Order)->getTable();
         $menusTable = DB::getTablePrefix() . (new Menu)->getTable();
@@ -83,11 +84,9 @@ class MenuItemsReportRule extends BaseRule
         $this->locationApplyScope($query);
 
 
-        return $query
-            ->whereBetween('order_date', [
-                Carbon::parse("01/01/2024"),
-//                $start,
-                $end])
+        $baseQuery = $query
+            ->whereBetween('order_date', [Carbon::parse("01/01/2024"), $end])
+//            ->whereBetween('order_date', [$start, $end])
             ->select([
                 DB::raw("$menusTable.menu_name as menu_item"),
                 DB::raw(
@@ -113,6 +112,8 @@ class MenuItemsReportRule extends BaseRule
             ->join('order_menus', 'order_menus.order_id', '=', 'orders.order_id')
             ->join('menus', 'menus.menu_id', '=', 'order_menus.menu_id')
             ->groupBy('menus.menu_id');
+
+        return DB::query()->fromSub($baseQuery, 'menu_items_report');
     }
 
     protected function getSumSqlByOrderStatus(string $orderTable, string $field, array|int $statusIds): string
@@ -126,9 +127,9 @@ class MenuItemsReportRule extends BaseRule
         return "SUM(CASE WHEN $statusCondition THEN $orderTable.$field ELSE 0 END)";
     }
 
-    public function getTableData(Carbon $start, Carbon $end, int $pageLimit = 5, $currentPage = null): LengthAwarePaginator
+    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
-        return parent::getTableData($start, $end, $pageLimit, $currentPage)->through(function ($report) {
+        return $paginatedQuery->through(function ($report) {
             return [
                 'menu_item' => $report->menu_item,
                 'completed_order_amount' => currency_format($report->completed_order_amount),
@@ -137,5 +138,26 @@ class MenuItemsReportRule extends BaseRule
                 'cancelled_order_quantity' => (int)$report->cancelled_order_quantity,
             ];
         });
+    }
+
+    public function getChartDataset(Carbon $start, Carbon $end): array
+    {
+        $results = $this->getReportQuery($start, $end)->get();
+
+        return [
+            'labels' => $results->map(fn($item) => ($item->menu_item))->all(),
+            'datasets' => [
+                [
+                    'label' => lang('igniterlabs.reports::default.label_completed_order_amount'),
+                    'backgroundColor' => "#ADEBB3",
+                    'data' => $results->map(fn($item) => (float)$item->completed_order_amount)->all()
+                ],
+                [
+                    'label' => lang('igniterlabs.reports::default.label_cancelled_order_amount'),
+                    'backgroundColor' => "#FF9999",
+                    'data' => $results->map(fn($item) => (float)$item->cancelled_order_amount)->all()
+                ],
+            ]
+        ];
     }
 }

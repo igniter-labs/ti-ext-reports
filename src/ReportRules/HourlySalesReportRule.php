@@ -7,6 +7,7 @@ use Igniter\Cart\Models\Menu;
 use Igniter\Cart\Models\Order;
 use IgniterLabs\Reports\Classes\BaseRule;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -77,7 +78,7 @@ class HourlySalesReportRule extends BaseRule
         ];
     }
 
-    public function getReportQuery(Carbon $start, Carbon $end): Builder
+    public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
     {
         $orderTable = DB::getTablePrefix() . (new Order)->getTable();
         $menusTable = DB::getTablePrefix() . (new Menu)->getTable();
@@ -85,10 +86,10 @@ class HourlySalesReportRule extends BaseRule
         $this->locationApplyScope($query);
 
 
-        return $query
+        $baseQuery = $query
             ->whereBetween('order_date', [
-//                Carbon::parse("01/01/2024")
-                $start, $end])
+                Carbon::parse("01/01/2024"), $end])
+//                $start, $end])
             ->select([
                 DB::raw("SUM($orderTable.order_total) as sales"),
                 DB::raw("COUNT($orderTable.order_id) as orders"),
@@ -99,11 +100,13 @@ class HourlySalesReportRule extends BaseRule
             ->join('order_menus', 'order_menus.order_id', '=', 'orders.order_id')
             ->join('menus', 'menus.menu_id', '=', 'order_menus.menu_id')
             ->groupBy(DB::raw("HOUR($orderTable.order_time)"));
+
+        return DB::query()->fromSub($baseQuery, 'hourly_sales_report');
     }
 
-    public function getTableData(Carbon $start, Carbon $end, int $pageLimit = 5, $currentPage = null): LengthAwarePaginator
+    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
-        return parent::getTableData($start, $end, $pageLimit, $currentPage)->through(function ($report) {
+        return $paginatedQuery->through(function ($report) {
             return [
                 'hours' => $report->hours,
                 'sales' => currency_format($report->sales),
@@ -111,5 +114,22 @@ class HourlySalesReportRule extends BaseRule
                 'orders' => $report->orders,
             ];
         });
+    }
+
+    public function getChartDataset(Carbon $start, Carbon $end): array
+    {
+        $results = $this->getReportQuery($start, $end)->get();
+
+        return [
+            'labels' => $results->map(fn($item) => ($item->hours))->all(),
+            'datasets' => [
+                [
+                    'label' => lang('igniterlabs.reports::default.label_sales'),
+                    'backgroundColor' => $results->map(fn($item): string => $this->generateBackgroundColor(
+                        (string)$item->hours))->all(),
+                    'data' => $results->map(fn($item) => (float)$item->sales)->all()
+                ]
+            ]
+        ];
     }
 }

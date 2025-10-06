@@ -78,7 +78,6 @@ class Extension extends BaseExtension
     public function registerReportRules()
     {
         return [
-            CustomerRule::class,
             OrderRule::class,
             HourlySalesReportRule::class,
             MenuItemsReportRule::class,
