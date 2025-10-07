@@ -127,9 +127,9 @@ class HourlySalesReportRule extends BaseRule
                     'label' => lang('igniterlabs.reports::default.label_sales'),
                     'backgroundColor' => $results->map(fn($item): string => $this->generateBackgroundColor(
                         (string)$item->hours))->all(),
-                    'data' => $results->map(fn($item) => (float)$item->sales)->all()
+                    'data' => $results->map(fn($item) => (float)$item->sales)->all(),
                 ]
-            ]
+            ],
         ];
     }
 }

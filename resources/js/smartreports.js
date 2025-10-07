@@ -36,7 +36,7 @@
         this.pivot.off("reportcomplete");
 
         $.request(handler).done(function (json) {
-            console.log(json)
+            // console.log(json)
             self.pivot.setReport({
                 dataSource: {data: json.data},
                 slice: json.slice,

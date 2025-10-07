@@ -63,6 +63,12 @@ class ReportBuilder extends AdminController
         AdminMenu::setContext('reportbuilder', 'tools');
     }
 
+    public function formAfterCreate($model): void
+    {
+        $model->columns = array_keys(resolve(Manager::class)->getRule($model->rule_class)?->defineColumns() ?? []);
+        $model->save();
+    }
+
     public function formExtendFieldsBefore(Form $form): void
     {
         if ($form->context === 'create') {

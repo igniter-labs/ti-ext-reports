@@ -35,7 +35,7 @@
             }
         })
 
-        console.log(this.options, JSON.parse(JSON.stringify(this.options.rules)))
+        // console.log(this.options, JSON.parse(JSON.stringify(this.options.rules)))
         this.$builder.queryBuilder(this.options);
         this.queryBuilder = this.$builder[0].queryBuilder;
 

@@ -23,43 +23,43 @@ class ExtendDashboardCharts
             $charts->bindEvent('charts.extendDatasets', function () use ($charts): void {
                 $charts->addDataset('top_customers', [
                     'label' => 'igniterlabs.reports::default.text_top_customers',
-                    'type' => 'bar',
+                    'type' => 'doughnut',
                     'icon' => 'fa fa-users',
                     'datasetFrom' => $this->getDatasetConfig(...)
                 ]);
                 $charts->addDataset('bottom_customers', [
                     'label' => 'igniterlabs.reports::default.text_bottom_customers',
-                    'type' => 'bar',
+                    'type' => 'doughnut',
                     'icon' => 'fa fa-users',
                     'datasetFrom' => $this->getDatasetConfig(...)
                 ]);
                 $charts->addDataset('best_selling_items', [
                     'label' => 'igniterlabs.reports::default.text_best_selling_items',
-                    'type' => 'bar',
+                    'type' => 'doughnut',
                     'icon' => 'fa fa-box-open',
                     'datasetFrom' => $this->getDatasetConfig(...)
                 ]);
                 $charts->addDataset('worst_selling_items', [
                     'label' => 'igniterlabs.reports::default.text_worst_selling_items',
-                    'type' => 'bar',
+                    'type' => 'doughnut',
                     'icon' => 'fa fa-box-open',
                     'datasetFrom' => $this->getDatasetConfig(...)
                 ]);
                 $charts->addDataset('hourly_sales_report', [
                     'label' => 'igniterlabs.reports::default.text_hourly_sales_report_title',
-                    'type' => 'bar',
+                    'type' => 'doughnut',
                     'icon' => 'fa fa-chart-line',
                     'datasetFrom' => $this->getDatasetConfig(...)
                 ]);
                 $charts->addDataset('menu_items_report', [
                     'label' => 'igniterlabs.reports::default.text_menu_items_report_title',
-                    'type' => 'bar',
+                    'type' => 'doughnut',
                     'icon' => 'fa fa-boxes',
                     'datasetFrom' => $this->getDatasetConfig(...)
                 ]);
                 $charts->addDataset('order_transactions', [
                     'label' => 'igniterlabs.reports::default.text_order_transactions_title',
-                    'type' => 'bar',
+                    'type' => 'doughnut',
                     'icon' => 'fa fa-receipt',
                     'datasetFrom' => $this->getDatasetConfig(...)
                 ]);
