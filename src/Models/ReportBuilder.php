@@ -65,4 +65,18 @@ class ReportBuilder extends Model
         if (!class_exists($className))
             throw new \Exception(sprintf(lang('igniterlabs.reports::default.alert_report_rule_class_not_found'), $className));
     }
+
+    public function getSelectedColumns(): array
+    {
+        $ruleClass = $this->rule_class;
+        $this->validateRuleClass($ruleClass);
+
+        $definedColumns = collect(resolve($ruleClass)->defineColumns());
+
+        if (!$this->columns) {
+            return $definedColumns->toArray();
+        }
+
+        return $definedColumns->filter(fn($column, $key) => in_array($key, $this->columns))->toArray();
+    }
 }

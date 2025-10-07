@@ -6,8 +6,6 @@ use Igniter\Admin\Classes\BaseDashboardWidget;
 use Igniter\Admin\Classes\BaseFormWidget;
 use Igniter\Admin\FormWidgets\DataTable;
 use Igniter\Local\Traits\LocationAwareWidget;
-use IgniterLabs\Reports\Classes\BaseRule;
-use IgniterLabs\Reports\Classes\Manager;
 use IgniterLabs\Reports\Models\ReportBuilder;
 
 class SmartReports extends BaseDashboardWidget
@@ -18,8 +16,6 @@ class SmartReports extends BaseDashboardWidget
      * @var string A unique alias to identify this widget.
      */
     protected string $defaultAlias = 'smartreports';
-
-    protected ?BaseRule $reportRule = null;
 
     protected ?ReportBuilder $reportBuilder = null;
 
@@ -37,7 +33,7 @@ class SmartReports extends BaseDashboardWidget
     public function initialize(): void
     {
         $this->loadReport();
-        $this->smartWidget = $this->reportRule ? $this->makeDataTableWidget() : null;
+        $this->smartWidget = $this->reportBuilder ? $this->makeDataTableWidget() : null;
     }
 
     /**
@@ -100,10 +96,6 @@ class SmartReports extends BaseDashboardWidget
         if ($reportBuilderId = $this->property('report')) {
             $this->reportBuilder = ReportBuilder::find($reportBuilderId);
         }
-
-        if ($this->reportBuilder) {
-            $this->reportRule = resolve(Manager::class)->getRule($this->reportBuilder->rule_class);
-        }
     }
 
     protected function makeDataTableWidget(): ?BaseFormWidget
@@ -113,13 +105,13 @@ class SmartReports extends BaseDashboardWidget
             'label' => lang('igniterlabs.reports::default.label_report_table'),
         ], [
             'model' => new ReportBuilder,
-            'columns' => $this->reportRule->defineColumns(),
+            'columns' => $this->reportBuilder->getSelectedColumns(),
             'useAjax' => true,
             'alias' => $this->alias . 'ReportTable',
         ]);
 
         $dataTableWidget->getTable()->unbindEvent(['table.getRecords', 'table.getDropdownOptions']);
-        $dataTableWidget->getTable()->bindEvent('table.getRecords', function (int $offset, int $limit, string $search) {
+        $dataTableWidget->getTable()->bindEvent('table.getRecords', function (int $offset, int $limit) {
             return $this->reportBuilder->getTableData(
                 $this->getStartDate(), $this->getEndDate(), $limit, ($offset / $limit) + 1
             );

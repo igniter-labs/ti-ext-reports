@@ -90,4 +90,6 @@ return [
     'help_rule_class' => 'Select the rule to apply for this report. This defines how the report will filter and display data. More options are available after you create the report builder.',
     'help_rules' => 'Define the filters for the report and other conditions to shape the data displayed in the report.',
     'help_columns' => 'Choose the columns to display in the reports view and include in CSV exports.',
+
+    'alert_report_rule_class_not_found' => 'Report rule class: %s not found'
 ];
