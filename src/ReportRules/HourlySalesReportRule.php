@@ -84,19 +84,15 @@ class HourlySalesReportRule extends BaseRule
         $menusTable = DB::getTablePrefix() . (new Menu)->getTable();
         $query = Order::query();
         $this->locationApplyScope($query);
-
-
+        
         $baseQuery = $query
-            ->whereBetween('order_date', [
-                Carbon::parse("01/01/2024"), $end])
-//                $start, $end])
+            ->whereBetween('order_date', [$start, $end])
             ->select([
                 DB::raw("SUM($orderTable.order_total) as sales"),
                 DB::raw("COUNT($orderTable.order_id) as orders"),
                 DB::raw("COUNT(DISTINCT $menusTable.menu_id) as covers"),
                 DB::raw("DATE_FORMAT($orderTable.order_time, '%l:00 %p') as hours"),
             ])
-            // include 0
             ->join('order_menus', 'order_menus.order_id', '=', 'orders.order_id')
             ->join('menus', 'menus.menu_id', '=', 'order_menus.menu_id')
             ->groupBy(DB::raw("HOUR($orderTable.order_time)"));
@@ -114,22 +110,5 @@ class HourlySalesReportRule extends BaseRule
                 'orders' => $report->orders,
             ];
         });
-    }
-
-    public function getChartDataset(Carbon $start, Carbon $end): array
-    {
-        $results = $this->getReportQuery($start, $end)->get();
-
-        return [
-            'labels' => $results->map(fn($item) => ($item->hours))->all(),
-            'datasets' => [
-                [
-                    'label' => lang('igniterlabs.reports::default.label_sales'),
-                    'backgroundColor' => $results->map(fn($item): string => $this->generateBackgroundColor(
-                        (string)$item->hours))->all(),
-                    'data' => $results->map(fn($item) => (float)$item->sales)->all(),
-                ]
-            ],
-        ];
     }
 }

@@ -85,8 +85,7 @@ class MenuItemsReportRule extends BaseRule
 
 
         $baseQuery = $query
-            ->whereBetween('order_date', [Carbon::parse("01/01/2024"), $end])
-//            ->whereBetween('order_date', [$start, $end])
+            ->whereBetween('order_date', [$start, $end])
             ->select([
                 DB::raw("$menusTable.menu_name as menu_item"),
                 DB::raw(
@@ -138,26 +137,5 @@ class MenuItemsReportRule extends BaseRule
                 'cancelled_order_quantity' => (int)$report->cancelled_order_quantity,
             ];
         });
-    }
-
-    public function getChartDataset(Carbon $start, Carbon $end): array
-    {
-        $results = $this->getReportQuery($start, $end)->get();
-
-        return [
-            'labels' => $results->map(fn($item) => ($item->menu_item))->all(),
-            'datasets' => [
-                [
-                    'label' => lang('igniterlabs.reports::default.label_completed_order_amount'),
-                    'backgroundColor' => "#ADEBB3",
-                    'data' => $results->map(fn($item) => (float)$item->completed_order_amount)->all()
-                ],
-                [
-                    'label' => lang('igniterlabs.reports::default.label_cancelled_order_amount'),
-                    'backgroundColor' => "#FF9999",
-                    'data' => $results->map(fn($item) => (float)$item->cancelled_order_amount)->all()
-                ],
-            ]
-        ];
     }
 }

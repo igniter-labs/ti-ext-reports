@@ -121,10 +121,7 @@ class OrderTransactionsRule extends BaseRule
         $this->locationApplyScope($query);
 
         $baseQuery = $query
-            ->whereBetween('order_date', [
-                Carbon::parse("01/01/2024"),
-//                $start,
-                $end])
+            ->whereBetween('order_date', [Carbon::parse("01/01/2024"), $end])
             ->select([
                 DB::raw("$orderMenuTable.name as menu_item"),
                 DB::raw("$orderMenuTable.order_id as order_id"),
@@ -160,22 +157,6 @@ class OrderTransactionsRule extends BaseRule
                 'payment' => $report->payment_name,
             ];
         });
-    }
-
-    public function getChartDataset(Carbon $start, Carbon $end): array
-    {
-        $results = $this->getReportQuery($start, $end)->groupBy('menu_id')->get();
-
-        return [
-            'labels' => $results->map(fn($item) => ($item->menu_item))->all(),
-            'datasets' => [
-                [
-                    'backgroundColor' => $results->map(fn($item): string => $this->generateBackgroundColor(
-                        (string)$item->menu_item))->all(),
-                    'data' => $results->map(fn($item) => (int)$item->amount)->all()
-                ]
-            ],
-        ];
     }
 
     protected function getStatusList(): array
