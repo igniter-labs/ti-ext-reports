@@ -76,27 +76,31 @@ class DiscountBreakdownRule extends BaseRule
         $couponMenuTable = DB::getTablePrefix() . 'igniter_coupon_menus';
         $couponTable = DB::getTablePrefix() . (new Coupon)->getTable();
         $couponHistoryTable = DB::getTablePrefix() . (new CouponHistory)->getTable();
+        $orderMenuTable = DB::getTablePrefix() . 'order_menus';
 
         $query = CouponHistory::query();
         $this->locationApplyScope($query);
 
 
         $baseQuery = $query
-            ->whereBetween('igniter_coupons_history.created_at', [
-                Carbon::parse("01/01/2024"),
-//                $start,
-                $end])
+            ->whereBetween('igniter_coupons_history.created_at', [$start, $end])
             ->select([
                 DB::raw("$couponTable.name as coupon_name"),
-                DB::raw("$menuTable.menu_name as menu_name"),
-                DB::raw("$menuTable.menu_price as menu_amount"),
-                DB::raw("COUNT($couponMenuTable.menu_id) as quantity"),
-                DB::raw("SUM($couponHistoryTable.amount) as total_discount_amount"),
+                DB::raw("$menuTable.menu_name as menu_item"),
+                DB::raw("$orderMenuTable.price as menu_amount"),
+                DB::raw("$orderMenuTable.quantity as quantity"),
+                DB::raw("(($orderMenuTable.price * $orderMenuTable.quantity) - $orderMenuTable.subtotal) as total_discount_amount")
+
             ])
-            ->leftJoin(DB::raw($couponTable), DB::raw("$couponTable.coupon_id"), '=', DB::raw("$couponTable.coupon_id"))
-            ->leftJoin(DB::raw($couponMenuTable), DB::raw("$couponMenuTable.coupon_id"), '=', DB::raw("$couponHistoryTable.coupon_id"))
-            ->leftJoin("menus", 'menus.menu_id', '=', DB::raw("$couponMenuTable.menu_id"))
-            ->groupBy('igniter_coupons_history.coupon_history_id');
+            ->join(DB::raw($couponTable), DB::raw("$couponTable.coupon_id"), '=', DB::raw("$couponHistoryTable.coupon_id"))
+            ->join(DB::raw($orderMenuTable), DB::raw("$orderMenuTable.order_id"), '=', DB::raw("$couponHistoryTable.order_id"))
+            ->join(DB::raw($couponMenuTable), function ($join) use ($couponMenuTable, $couponTable, $orderMenuTable) {
+                $join->on(DB::raw("$couponMenuTable.coupon_id"), '=', DB::raw("$couponTable.coupon_id"))
+                    ->on(DB::raw("$couponMenuTable.menu_id"), '=', DB::raw("$orderMenuTable.menu_id"));
+            })
+            ->join(DB::raw($menuTable), DB::raw("$menuTable.menu_id"), '=', DB::raw("$orderMenuTable.menu_id"))
+            ->whereRaw("(($orderMenuTable.price * $orderMenuTable.quantity) - $orderMenuTable.subtotal) > 0")
+            ->groupBy(DB::raw("$orderMenuTable.menu_id"));
 
         return DB::query()->fromSub($baseQuery, 'discount_breakdown');
     }
@@ -106,10 +110,10 @@ class DiscountBreakdownRule extends BaseRule
         return $paginatedQuery->through(function ($report) {
             return [
                 'coupon_name' => $report->coupon_name,
-                'menu_name' => $report->menu_name,
+                'menu_item' => $report->menu_item,
                 'menu_amount' => $report->menu_amount ? currency_format($report->menu_amount) : null,
                 'quantity' => $report->quantity,
-                'total_discount_amount' => currency_format($report->total_discount_amount),
+                'total_discount_amount' => $report->total_discount_amount ? currency_format($report->total_discount_amount) : 0,
             ];
         });
     }
