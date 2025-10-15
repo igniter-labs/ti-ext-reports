@@ -31,10 +31,3 @@ php artisan igniter:up
 4. Click on the **⚙️ / Edit Widget** button on the widget.
 5. From the **Report** dropdown, select the report you created earlier and save.
 6. You should now see the report data displayed in the widget.
-
-## Features
-- Charts showing report data such as customers with most orders, best-selling products, etc.
-- Data tables showing detailed report data such as orders, products, customers, etc.
-- Filters to customize the report data. 
-
-and many more...
