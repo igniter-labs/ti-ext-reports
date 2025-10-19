@@ -57,10 +57,6 @@ class ReportBuilder extends Model
         return $ruleObject->mapTableData($tableData);
     }
 
-    public function validateRuleClass(string $className)
-    {
-    }
-
     public function getSelectedColumns(): array
     {
         throw_if(!class_exists($this->rule_class),
