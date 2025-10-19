@@ -7,10 +7,10 @@ use Igniter\Cart\Models\Menu;
 use Igniter\Coupons\Models\Coupon;
 use Igniter\Coupons\Models\CouponHistory;
 use IgniterLabs\Reports\Classes\BaseRule;
-use Illuminate\Database\Eloquent\Builder;
+use Igniter\Flame\Database\Builder;
+use Igniter\Flame\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class DiscountBreakdownRule extends BaseRule
 {
@@ -105,7 +105,7 @@ class DiscountBreakdownRule extends BaseRule
         return DB::query()->fromSub($baseQuery, 'discount_breakdown');
     }
 
-    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
+    public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
         return $paginatedQuery->through(function ($report) {
             return [
@@ -117,5 +117,4 @@ class DiscountBreakdownRule extends BaseRule
             ];
         });
     }
-
 }

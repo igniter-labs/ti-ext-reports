@@ -6,9 +6,9 @@ use Carbon\Carbon;
 use Igniter\Cart\Models\Menu;
 use Igniter\Cart\Models\Order;
 use IgniterLabs\Reports\Classes\BaseRule;
-use Illuminate\Database\Eloquent\Builder;
+use Igniter\Flame\Database\Builder;
+use Igniter\Flame\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
 class MenuItemsReportRule extends BaseRule
@@ -126,7 +126,7 @@ class MenuItemsReportRule extends BaseRule
         return "SUM(CASE WHEN $statusCondition THEN $orderTable.$field ELSE 0 END)";
     }
 
-    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
+    public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
         return $paginatedQuery->through(function ($report) {
             return [

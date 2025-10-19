@@ -2,15 +2,18 @@
 
 namespace IgniterLabs\Reports\Classes;
 
+use Igniter\Flame\Traits\ExtensionTrait;
 use Igniter\Local\Traits\LocationAwareWidget;
-use Illuminate\Database\Eloquent\Builder;
-use Carbon\Carbon;
+use Igniter\Flame\Database\Builder;
+use Igniter\Flame\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Carbon;
 
 abstract class BaseRule
 {
     use LocationAwareWidget;
+    use ExtensionTrait;
+
     abstract public function ruleDetails(): array;
 
     abstract public function defineFilters(): array;
@@ -19,12 +22,9 @@ abstract class BaseRule
 
     abstract public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder;
 
-    public function getSelectedColumns(array $selectedColumns): array
+    public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
-        return collect($this->defineColumns())
-            ->filter(function ($column, $key) use ($selectedColumns) {
-                return in_array($key, $selectedColumns);
-            })->toArray();
+        return $paginatedQuery;
     }
 
     protected function getTextOperators(): array
@@ -60,18 +60,13 @@ abstract class BaseRule
         ];
     }
 
-    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
-    {
-        return $paginatedQuery;
-    }
-
-    public function getChartDataset(Carbon $start, Carbon $end): array
-    {
-        return [];
-    }
-
     protected function generateBackgroundColor(string $string): string
     {
         return sprintf('hsl(%s, 70%%, 60%%)', crc32('background-color-' . $string) % 360);
+    }
+
+    public static function extend(callable $callback): void
+    {
+        self::extensionExtendCallback($callback);
     }
 }

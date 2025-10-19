@@ -2,12 +2,14 @@
 
 namespace IgniterLabs\Reports\Models;
 
-use Carbon\Carbon;
 use Igniter\Flame\Database\Model;
+use Igniter\Flame\Exception\FlashException;
 use IgniterLabs\Reports\Classes\BaseRule;
 use IgniterLabs\Reports\Classes\Manager;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use timgws\QueryBuilderParser;
 
 class ReportBuilder extends Model
@@ -35,48 +37,72 @@ class ReportBuilder extends Model
         });
     }
 
-    public function getQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
+    public function getTableData($start, $end, $pageLimit = 5, $currentPage = null): LengthAwarePaginator
     {
-        $ruleClass = $this->rule_class;
-        $this->validateRuleClass($ruleClass);
+        throw_if(!class_exists($this->rule_class),
+            FlashException::error(sprintf(lang('igniterlabs.reports::default.alert_report_rule_class_not_found'), $this->rule_class))
+        );
 
-        $ruleObject = resolve($ruleClass);
+        /** @var BaseRule $ruleObject */
+        $ruleObject = $this->getRuleObject();
 
-        $reportQuery = $ruleObject->getReportQuery($start, $end);
-        if ($this->rule_data && is_array($this->rule_data)) {
-            return (new QueryBuilderParser())->parse($this->getRawOriginal('rule_data'), $reportQuery);
+        $reportQuery = $ruleObject->getReportQuery(Carbon::parse($start), Carbon::parse($end));
+
+        if ($ruleRawData = $this->getRawOriginal('rule_data', [])) {
+            $reportQuery = (new QueryBuilderParser())->parse($ruleRawData, $reportQuery);
         }
 
-        return $reportQuery;
-    }
+        $tableData = $reportQuery->paginate($pageLimit, ['*'], 'page', $currentPage);
 
-    public function getTableData($start, $end, $pageLimit = 5, $currentPage = null)
-    {
-        $ruleClass = $this->rule_class;
-        $this->validateRuleClass($ruleClass);
-
-        return $this->rule_class::mapTableData(
-            $this->getQuery($start, $end)->paginate($pageLimit, ['*'], 'page', $currentPage)
-        );
+        return $ruleObject->mapTableData($tableData);
     }
 
     public function validateRuleClass(string $className)
     {
-        if (!class_exists($className))
-            throw new \Exception(sprintf(lang('igniterlabs.reports::default.alert_report_rule_class_not_found'), $className));
     }
 
     public function getSelectedColumns(): array
     {
-        $ruleClass = $this->rule_class;
-        $this->validateRuleClass($ruleClass);
+        throw_if(!class_exists($this->rule_class),
+            FlashException::error(sprintf(lang('igniterlabs.reports::default.alert_report_rule_class_not_found'), $this->rule_class))
+        );
 
-        $definedColumns = collect(resolve($ruleClass)->defineColumns());
+        /** @var BaseRule $ruleObject */
+        $ruleObject = $this->getRuleObject();
 
-        if (!$this->columns) {
-            return $definedColumns->toArray();
+        return collect($ruleObject->defineColumns())
+            ->when($this->columns, function ($columns) {
+                return $columns->filter(fn($column, $key) => in_array($key, $this->columns));
+            })
+            ->toArray();
+    }
+
+    /**
+     * Extends this model with the rule class
+     * @param string $class Class name
+     */
+    public function applyRuleClass($class = null): bool
+    {
+        if (!$class) {
+            $class = $this->rule_class;
         }
 
-        return $definedColumns->filter(fn($column, $key) => in_array($key, $this->columns))->toArray();
+        if ($class && !$this->isClassExtendedWith($class)) {
+            $this->extendClassWith($class);
+        }
+
+        $this->rule_class = $class;
+
+        return true;
+    }
+
+    /**
+     * @return null|BaseRule
+     */
+    public function getRuleObject(): mixed
+    {
+        $this->applyRuleClass();
+
+        return $this->asExtension($this->rule_class);
     }
 }

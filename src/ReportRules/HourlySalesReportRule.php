@@ -6,8 +6,8 @@ use Carbon\Carbon;
 use Igniter\Cart\Models\Menu;
 use Igniter\Cart\Models\Order;
 use IgniterLabs\Reports\Classes\BaseRule;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Query\Builder as QueryBuilder;
+use Igniter\Flame\Database\Builder;
+use Igniter\Flame\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -84,7 +84,7 @@ class HourlySalesReportRule extends BaseRule
         $menusTable = DB::getTablePrefix() . (new Menu)->getTable();
         $query = Order::query();
         $this->locationApplyScope($query);
-        
+
         $baseQuery = $query
             ->whereBetween('order_date', [$start, $end])
             ->select([
@@ -100,7 +100,7 @@ class HourlySalesReportRule extends BaseRule
         return DB::query()->fromSub($baseQuery, 'hourly_sales_report');
     }
 
-    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
+    public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
         return $paginatedQuery->through(function ($report) {
             return [

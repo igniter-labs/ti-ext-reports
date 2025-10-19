@@ -10,7 +10,9 @@ use Igniter\Local\Models\Location as LocationModel;
 use Igniter\User\Facades\AdminAuth;
 use Igniter\User\Models\CustomerGroup;
 use IgniterLabs\Reports\Classes\BaseRule;
-use Illuminate\Database\Eloquent\Builder;
+use Igniter\Flame\Database\Builder;
+use Igniter\Flame\Database\Query\Builder as QueryBuilder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 
 class OrderRule extends BaseRule
@@ -158,9 +160,22 @@ class OrderRule extends BaseRule
         ];
     }
 
-    public function getReportQuery(Carbon|\Carbon\Carbon $start, Carbon|\Carbon\Carbon $end): Builder
+    public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
     {
         return Order::query()->whereBetween('order_date', [$start, $end]);
+    }
+
+    public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
+    {
+        return $paginatedQuery->through(function (Order $report) {
+            return [
+                'customer_name' => $report->customer_name,
+                'email' => $report->email,
+                'order_total' => $report->order_total,
+                'order_date' => $report->order_datetime->isoFormat(lang('system::lang.moment.date_time_format')),
+                'order_type' => $report->order_type_name,
+            ];
+        });
     }
 
     protected function getLocationIdOperators(): array

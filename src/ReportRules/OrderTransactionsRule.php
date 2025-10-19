@@ -9,10 +9,10 @@ use Igniter\Cart\Models\Order;
 use Igniter\Cart\Models\OrderMenu;
 use Igniter\PayRegister\Models\Payment;
 use IgniterLabs\Reports\Classes\BaseRule;
-use Illuminate\Database\Eloquent\Builder;
+use Igniter\Flame\Database\Builder;
+use Igniter\Flame\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class OrderTransactionsRule extends BaseRule
 {
@@ -143,7 +143,7 @@ class OrderTransactionsRule extends BaseRule
         return DB::query()->fromSub($baseQuery, 'order_transactions');
     }
 
-    public static function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
+    public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
         return $paginatedQuery->through(function ($report) {
             return [
