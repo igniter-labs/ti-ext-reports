@@ -3,10 +3,9 @@
 namespace IgniterLabs\Reports\DashboardWidgets;
 
 use Igniter\Admin\Classes\BaseDashboardWidget;
+use Igniter\Admin\Classes\BaseFormWidget;
 use Igniter\Admin\FormWidgets\DataTable;
 use Igniter\Local\Traits\LocationAwareWidget;
-use IgniterLabs\Reports\Classes\BaseRule;
-use IgniterLabs\Reports\Classes\Manager;
 use IgniterLabs\Reports\Models\ReportBuilder;
 
 class SmartReports extends BaseDashboardWidget
@@ -18,7 +17,9 @@ class SmartReports extends BaseDashboardWidget
      */
     protected string $defaultAlias = 'smartreports';
 
-    protected ?BaseRule $reportRule = null;
+    protected ?ReportBuilder $reportBuilder = null;
+
+    protected ?BaseFormWidget $smartWidget;
 
     public function __construct($controller, $properties = [])
     {
@@ -27,6 +28,12 @@ class SmartReports extends BaseDashboardWidget
         }
 
         parent::__construct($controller, $properties);
+    }
+
+    public function initialize(): void
+    {
+        $this->loadReport();
+        $this->smartWidget = $this->reportBuilder ? $this->makeDataTableWidget() : null;
     }
 
     /**
@@ -52,29 +59,18 @@ class SmartReports extends BaseDashboardWidget
         ];
     }
 
+    protected function prepareVars()
+    {
+        $this->vars['widget'] = $this->smartWidget;
+        $this->vars['widgetTitle'] = $this->reportBuilder?->name;
+    }
+
     public function loadAssets()
     {
         $this->addCss('igniterlabs.reports::/css/smartreports.css', 'smartreports-css');
         $this->addJs('igniterlabs.reports::/js/smartreports.js', 'smartreports-js');
-    }
-
-    protected function prepareVars()
-    {
-        $this->loadReportRule();
-
-        $this->vars['dataTableWidget'] = $this->makeDataTableWidget();
-    }
-
-    public function onFetchReport()
-    {
-        $this->loadReportRule();
-
-        $start = $this->getStartDate();
-        $end = $this->getEndDate();
-
-        return [
-            'data' => $this->reportRule->fetchReport($start, $end),
-        ];
+        $this->addCss('widgets/table.css', 'table-css');
+        $this->addJs('widgets/table.js', 'table-js');
     }
 
     public function getStartDate(): mixed
@@ -95,48 +91,33 @@ class SmartReports extends BaseDashboardWidget
         return $this->property('endDate');
     }
 
-    protected function loadReportRule(): ?BaseRule
+    protected function loadReport(): void
     {
-        if ($this->reportRule) {
-            return $this->reportRule;
+        if ($reportBuilderId = $this->property('report')) {
+            $this->reportBuilder = ReportBuilder::find($reportBuilderId);
         }
-
-        if (!$reportBuilderId = $this->property('report')) {
-            return null;
-        }
-
-        if (!$reportBuilder = ReportBuilder::find($reportBuilderId)) {
-            return null;
-        }
-
-        return $this->reportRule = resolve(Manager::class)->getRule($reportBuilder->rule_class);
     }
 
-    protected function makeDataTableWidget()
+    protected function makeDataTableWidget(): ?BaseFormWidget
     {
-        if (!$this->reportRule) {
-            return null;
-        }
-
         $dataTableWidget = $this->makeFormWidget(DataTable::class, [
-            'name' => 'reportTable',
+            'name' => 'reportTable' . $this->reportBuilder->code,
             'label' => lang('igniterlabs.reports::default.label_report_table'),
         ], [
             'model' => new ReportBuilder,
-            'columns' => $this->reportRule->defineColumns(),
+            'columns' => $this->reportBuilder->getSelectedColumns(),
+            'useAjax' => true,
+            'alias' => $this->alias . 'ReportTable',
         ]);
 
         $dataTableWidget->getTable()->unbindEvent(['table.getRecords', 'table.getDropdownOptions']);
-        $dataTableWidget->getTable()->bindEvent('table.getRecords', function(int $offset, int $limit, string $search) {
-            $page = ($offset / $limit) + 1;
-
-            $query = $this->reportRule->fetchReport(
-                $this->getStartDate(),
-                $this->getEndDate(),
+        $dataTableWidget->getTable()->bindEvent('table.getRecords', function (int $offset, int $limit) {
+            return $this->reportBuilder->getTableData(
+                $this->getStartDate(), $this->getEndDate(), $limit, ($offset / $limit) + 1
             );
-
-            return $query->paginate($limit, ['*'], 'page', $page);
         });
+
+        $dataTableWidget->bindToController();
 
         return $dataTableWidget;
     }
