@@ -75,5 +75,5 @@ return [
     'help_rules' => 'Define the filters for the report and other conditions to shape the data displayed in the report.',
     'help_columns' => 'Choose the columns to display in the reports view and include in CSV exports.',
 
-    'alert_report_rule_class_not_found' => 'Report rule class: %s not found'
+    'alert_report_rule_class_not_found' => 'Report rule class: %s not found',
 ];

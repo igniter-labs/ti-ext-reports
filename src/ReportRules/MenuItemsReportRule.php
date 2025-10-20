@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports\ReportRules;
 
 use Carbon\Carbon;
 use Igniter\Cart\Models\Menu;
 use Igniter\Cart\Models\Order;
-use IgniterLabs\Reports\Classes\BaseRule;
 use Igniter\Flame\Database\Builder;
 use Igniter\Flame\Database\Query\Builder as QueryBuilder;
+use IgniterLabs\Reports\Classes\BaseRule;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Override;
 
 class MenuItemsReportRule extends BaseRule
 {
@@ -59,53 +62,52 @@ class MenuItemsReportRule extends BaseRule
     {
         return [
             'menu_item' => [
-                'title' => lang('igniterlabs.reports::default.label_menu_item')
+                'title' => lang('igniterlabs.reports::default.label_menu_item'),
             ],
             'completed_order_amount' => [
-                'title' => lang('igniterlabs.reports::default.label_completed_order_amount')
+                'title' => lang('igniterlabs.reports::default.label_completed_order_amount'),
             ],
             'completed_order_quantity' => [
-                'title' => lang('igniterlabs.reports::default.label_completed_order_quantity')
+                'title' => lang('igniterlabs.reports::default.label_completed_order_quantity'),
             ],
             'cancelled_order_amount' => [
-                'title' => lang('igniterlabs.reports::default.label_cancelled_order_amount')
+                'title' => lang('igniterlabs.reports::default.label_cancelled_order_amount'),
             ],
             'cancelled_order_quantity' => [
-                'title' => lang('igniterlabs.reports::default.label_cancelled_order_quantity')
+                'title' => lang('igniterlabs.reports::default.label_cancelled_order_quantity'),
             ],
         ];
     }
 
     public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
     {
-        $orderTable = DB::getTablePrefix() . (new Order)->getTable();
-        $menusTable = DB::getTablePrefix() . (new Menu)->getTable();
+        $orderTable = DB::getTablePrefix().(new Order)->getTable();
+        $menusTable = DB::getTablePrefix().(new Menu)->getTable();
         $query = Order::query();
         $this->locationApplyScope($query);
-
 
         $baseQuery = $query
             ->whereBetween('order_date', [$start, $end])
             ->select([
-                DB::raw("$menusTable.menu_name as menu_item"),
+                DB::raw($menusTable.'.menu_name as menu_item'),
                 DB::raw(
                     $this->getSumSqlByOrderStatus(
-                        $orderTable, "order_total", setting('completed_order_status')
-                    ) . " as completed_order_amount"),
+                        $orderTable, 'order_total', setting('completed_order_status')
+                    ).' as completed_order_amount'),
                 DB::raw(
                     $this->getSumSqlByOrderStatus(
-                        $orderTable, "total_items", setting('completed_order_status')
-                    ) . " as completed_order_quantity",
+                        $orderTable, 'total_items', setting('completed_order_status')
+                    ).' as completed_order_quantity',
                 ),
                 DB::raw(
                     $this->getSumSqlByOrderStatus(
-                        $orderTable, "order_total", setting('canceled_order_status')
-                    ) . " as cancelled_order_amount",
+                        $orderTable, 'order_total', setting('canceled_order_status')
+                    ).' as cancelled_order_amount',
                 ),
                 DB::raw(
                     $this->getSumSqlByOrderStatus(
-                        $orderTable, "total_items", setting('canceled_order_status')
-                    ) . " as cancelled_order_quantity",
+                        $orderTable, 'total_items', setting('canceled_order_status')
+                    ).' as cancelled_order_quantity',
                 ),
             ])
             ->join('order_menus', 'order_menus.order_id', '=', 'orders.order_id')
@@ -115,27 +117,26 @@ class MenuItemsReportRule extends BaseRule
         return DB::query()->fromSub($baseQuery, 'menu_items_report');
     }
 
-    protected function getSumSqlByOrderStatus(string $orderTable, string $field, array|int $statusIds): string
+    protected function getSumSqlByOrderStatus(string $orderTable, string $field, array|string|int $statusIds): string
     {
         if (is_array($statusIds)) {
-            $statusCondition = sprintf("%s.status_id IN (%s)", $orderTable, implode(',', $statusIds));
+            $statusCondition = sprintf('%s.status_id IN (%s)', $orderTable, implode(',', $statusIds));
         } else {
-            $statusCondition = sprintf("%s.status_id = %d", $orderTable, $statusIds);
+            $statusCondition = sprintf('%s.status_id = %d', $orderTable, $statusIds);
         }
 
-        return "SUM(CASE WHEN $statusCondition THEN $orderTable.$field ELSE 0 END)";
+        return sprintf('SUM(CASE WHEN %s THEN %s.%s ELSE 0 END)', $statusCondition, $orderTable, $field);
     }
 
+    #[Override]
     public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
-        return $paginatedQuery->through(function ($report) {
-            return [
-                'menu_item' => $report->menu_item,
-                'completed_order_amount' => currency_format($report->completed_order_amount),
-                'completed_order_quantity' => (int)$report->completed_order_quantity,
-                'cancelled_order_amount' => currency_format($report->cancelled_order_amount),
-                'cancelled_order_quantity' => (int)$report->cancelled_order_quantity,
-            ];
-        });
+        return $paginatedQuery->through(fn($report): array => [
+            'menu_item' => $report->menu_item,
+            'completed_order_amount' => currency_format($report->completed_order_amount),
+            'completed_order_quantity' => (int)$report->completed_order_quantity,
+            'cancelled_order_amount' => currency_format($report->cancelled_order_amount),
+            'cancelled_order_quantity' => (int)$report->cancelled_order_quantity,
+        ]);
     }
 }

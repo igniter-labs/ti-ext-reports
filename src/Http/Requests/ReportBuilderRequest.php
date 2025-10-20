@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports\Http\Requests;
 
 use Igniter\System\Classes\FormRequest;
 use Illuminate\Validation\Rule;
+use Override;
 
 class ReportBuilderRequest extends FormRequest
 {
+    #[Override]
     public function attributes(): array
     {
         return [

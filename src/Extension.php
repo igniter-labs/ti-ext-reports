@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports;
 
 use Igniter\System\Classes\BaseExtension;
@@ -12,6 +14,7 @@ use IgniterLabs\Reports\ReportRules\HourlySalesReportRule;
 use IgniterLabs\Reports\ReportRules\MenuItemsReportRule;
 use IgniterLabs\Reports\ReportRules\OrderRule;
 use IgniterLabs\Reports\ReportRules\OrderTransactionsRule;
+use Override;
 
 class Extension extends BaseExtension
 {
@@ -19,11 +22,13 @@ class Extension extends BaseExtension
         Manager::class,
     ];
 
-    public function boot()
+    #[Override]
+    public function boot(): void
     {
         resolve(ExtendDashboardCharts::class)->registerCharts();
     }
 
+    #[Override]
     public function registerFormWidgets(): array
     {
         return [
@@ -34,6 +39,7 @@ class Extension extends BaseExtension
         ];
     }
 
+    #[Override]
     public function registerDashboardWidgets(): array
     {
         return [
@@ -44,6 +50,7 @@ class Extension extends BaseExtension
         ];
     }
 
+    #[Override]
     public function registerNavigation(): array
     {
         return [
@@ -61,6 +68,7 @@ class Extension extends BaseExtension
         ];
     }
 
+    #[Override]
     public function registerPermissions(): array
     {
         return [
@@ -81,8 +89,4 @@ class Extension extends BaseExtension
             DiscountBreakdownRule::class,
         ];
     }
-
-    protected function getBestSellingMenuItemsDataset($start, $end) {}
-
-    protected function getWorstSellingMenuItemsDataset($start, $end) {}
 }

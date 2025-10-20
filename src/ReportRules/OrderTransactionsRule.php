@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports\ReportRules;
 
 use Carbon\Carbon;
@@ -7,12 +9,13 @@ use Igniter\Admin\Models\Status;
 use Igniter\Cart\Models\Menu;
 use Igniter\Cart\Models\Order;
 use Igniter\Cart\Models\OrderMenu;
-use Igniter\PayRegister\Models\Payment;
-use IgniterLabs\Reports\Classes\BaseRule;
 use Igniter\Flame\Database\Builder;
 use Igniter\Flame\Database\Query\Builder as QueryBuilder;
+use Igniter\PayRegister\Models\Payment;
+use IgniterLabs\Reports\Classes\BaseRule;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Override;
 
 class OrderTransactionsRule extends BaseRule
 {
@@ -77,7 +80,7 @@ class OrderTransactionsRule extends BaseRule
                     'format' => 'YYYY/MM/DD',
                 ],
                 'operators' => $this->getDateOperators(),
-            ]
+            ],
         ];
     }
 
@@ -85,54 +88,54 @@ class OrderTransactionsRule extends BaseRule
     {
         return [
             'order_status' => [
-                'title' => lang('igniterlabs.reports::default.label_order_status')
+                'title' => lang('igniterlabs.reports::default.label_order_status'),
             ],
             'date' => [
-                'title' => lang('igniterlabs.reports::default.label_date')
+                'title' => lang('igniterlabs.reports::default.label_date'),
             ],
             'order_id' => [
-                'title' => lang('igniterlabs.reports::default.label_order_id')
+                'title' => lang('igniterlabs.reports::default.label_order_id'),
             ],
             'menu_id' => [
-                'title' => lang('igniterlabs.reports::default.label_menu_id')
+                'title' => lang('igniterlabs.reports::default.label_menu_id'),
             ],
             'quantity' => [
-                'title' => lang('igniterlabs.reports::default.label_quantity')
+                'title' => lang('igniterlabs.reports::default.label_quantity'),
             ],
             'menu_item' => [
-                'title' => lang('igniterlabs.reports::default.label_menu_item')
+                'title' => lang('igniterlabs.reports::default.label_menu_item'),
             ],
             'amount' => [
-                'title' => lang('igniterlabs.reports::default.label_amount')
+                'title' => lang('igniterlabs.reports::default.label_amount'),
             ],
             'payment' => [
-                'title' => lang('igniterlabs.reports::default.label_payment')
+                'title' => lang('igniterlabs.reports::default.label_payment'),
             ],
         ];
     }
 
     public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
     {
-        $orderTable = DB::getTablePrefix() . (new Order)->getTable();
-        $orderMenuTable = DB::getTablePrefix() . (new OrderMenu)->getTable();
-        $statusTable = DB::getTablePrefix() . (new Status)->getTable();
-        $paymentsTable = DB::getTablePrefix() . (new Payment)->getTable();
+        $orderTable = DB::getTablePrefix().(new Order)->getTable();
+        $orderMenuTable = DB::getTablePrefix().(new OrderMenu)->getTable();
+        $statusTable = DB::getTablePrefix().(new Status)->getTable();
+        $paymentsTable = DB::getTablePrefix().(new Payment)->getTable();
         $query = OrderMenu::query();
         $this->locationApplyScope($query);
 
         $baseQuery = $query
-            ->whereBetween('order_date', [Carbon::parse("01/01/2024"), $end])
+            ->whereBetween('order_date', [$start, $end])
             ->select([
-                DB::raw("$orderMenuTable.name as menu_item"),
-                DB::raw("$orderMenuTable.order_id as order_id"),
-                DB::raw("DATE($orderTable.order_date) as date"),
-                DB::raw("SUM($orderMenuTable.quantity) as quantity"),
-                DB::raw("SUM($orderMenuTable.subtotal) as amount"),
-                DB::raw("$orderTable.status_id as order_status_id"),
-                DB::raw("$statusTable.status_name as order_status"),
-                DB::raw("$orderMenuTable.menu_id as menu_id"),
-                DB::raw("$orderTable.payment as payment"),
-                DB::raw("$paymentsTable.name as payment_name")
+                DB::raw($orderMenuTable.'.name as menu_item'),
+                DB::raw($orderMenuTable.'.order_id as order_id'),
+                DB::raw(sprintf('DATE(%s.order_date) as date', $orderTable)),
+                DB::raw(sprintf('SUM(%s.quantity) as quantity', $orderMenuTable)),
+                DB::raw(sprintf('SUM(%s.subtotal) as amount', $orderMenuTable)),
+                DB::raw($orderTable.'.status_id as order_status_id'),
+                DB::raw($statusTable.'.status_name as order_status'),
+                DB::raw($orderMenuTable.'.menu_id as menu_id'),
+                DB::raw($orderTable.'.payment as payment'),
+                DB::raw($paymentsTable.'.name as payment_name'),
 
             ])
             ->leftJoin('orders', 'orders.order_id', '=', 'order_menus.order_id')
@@ -143,20 +146,19 @@ class OrderTransactionsRule extends BaseRule
         return DB::query()->fromSub($baseQuery, 'order_transactions');
     }
 
+    #[Override]
     public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
-        return $paginatedQuery->through(function ($report) {
-            return [
-                'menu_item' => $report->menu_item,
-                'order_id' => $report->order_id,
-                'menu_id' => $report->menu_id,
-                'date' => $report->date,
-                'quantity' => $report->quantity,
-                'amount' => currency_format($report->amount),
-                'order_status' => $report->order_status,
-                'payment' => $report->payment_name,
-            ];
-        });
+        return $paginatedQuery->through(fn($report): array => [
+            'menu_item' => $report->menu_item,
+            'order_id' => $report->order_id,
+            'menu_id' => $report->menu_id,
+            'date' => $report->date,
+            'quantity' => $report->quantity,
+            'amount' => currency_format($report->amount),
+            'order_status' => $report->order_status,
+            'payment' => $report->payment_name,
+        ]);
     }
 
     protected function getStatusList(): array

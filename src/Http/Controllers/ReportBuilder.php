@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports\Http\Controllers;
 
 use Igniter\Admin\Classes\AdminController;
@@ -27,6 +29,7 @@ class ReportBuilder extends AdminController
             'configFile' => 'reportbuilder',
         ],
     ];
+
     public $formConfig = [
         'name' => 'igniterlabs.reports::default.text_form_name',
         'model' => ReportBuilderModel::class,
@@ -65,7 +68,7 @@ class ReportBuilder extends AdminController
 
     public function formAfterCreate($model): void
     {
-        $model->columns = array_keys(resolve(Manager::class)->getRule($model->rule_class)?->defineColumns() ?? []);
+        $model->columns = array_keys(resolve(Manager::class)->getRule($model->rule_class)->defineColumns() ?? []);
         $model->save();
     }
 
@@ -76,8 +79,8 @@ class ReportBuilder extends AdminController
         }
 
         $reportRule = resolve(Manager::class)->getRule($form->model->rule_class);
-        $form->fields['columns']['options'] = collect($reportRule?->defineColumns() ?? [])
-            ->mapWithKeys(fn($column, $key) => [$key => array_get($column, 'title')])->toArray();
+        $form->fields['columns']['options'] = collect($reportRule->defineColumns() ?? [])
+            ->mapWithKeys(fn($column, $key): array => [$key => array_get($column, 'title')])->toArray();
     }
 
     public function formExtendFields(Form $form): void

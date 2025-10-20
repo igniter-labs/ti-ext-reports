@@ -1,18 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports\Classes;
 
-use Igniter\Flame\Traits\ExtensionTrait;
-use Igniter\Local\Traits\LocationAwareWidget;
 use Igniter\Flame\Database\Builder;
 use Igniter\Flame\Database\Query\Builder as QueryBuilder;
+use Igniter\Local\Traits\LocationAwareWidget;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 
 abstract class BaseRule
 {
     use LocationAwareWidget;
-    use ExtensionTrait;
 
     abstract public function ruleDetails(): array;
 
@@ -35,7 +35,7 @@ abstract class BaseRule
             'contains', 'not_contains',
             'ends_with', 'not_ends_with',
             'is_empty', 'is_not_empty',
-            'is_null', 'is_not_null'
+            'is_null', 'is_not_null',
         ];
     }
 
@@ -58,15 +58,5 @@ abstract class BaseRule
             'greater', 'greater_or_equal',
             'between', 'not_between',
         ];
-    }
-
-    protected function generateBackgroundColor(string $string): string
-    {
-        return sprintf('hsl(%s, 70%%, 60%%)', crc32('background-color-' . $string) % 360);
-    }
-
-    public static function extend(callable $callback): void
-    {
-        self::extensionExtendCallback($callback);
     }
 }

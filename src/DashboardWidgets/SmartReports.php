@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports\DashboardWidgets;
 
+use Igniter\Admin\Classes\AdminController;
 use Igniter\Admin\Classes\BaseDashboardWidget;
 use Igniter\Admin\Classes\BaseFormWidget;
 use Igniter\Admin\FormWidgets\DataTable;
 use Igniter\Local\Traits\LocationAwareWidget;
 use IgniterLabs\Reports\Models\ReportBuilder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SmartReports extends BaseDashboardWidget
 {
@@ -19,9 +23,9 @@ class SmartReports extends BaseDashboardWidget
 
     protected ?ReportBuilder $reportBuilder = null;
 
-    protected ?BaseFormWidget $smartWidget;
+    protected ?BaseFormWidget $smartWidget = null;
 
-    public function __construct($controller, $properties = [])
+    public function __construct(AdminController $controller, array $properties = [])
     {
         foreach ($properties as $property => $value) {
             $properties[$property] = is_array($value) ? json_encode($value) : $value;
@@ -33,7 +37,7 @@ class SmartReports extends BaseDashboardWidget
     public function initialize(): void
     {
         $this->loadReport();
-        $this->smartWidget = $this->reportBuilder ? $this->makeDataTableWidget() : null;
+        $this->smartWidget = $this->reportBuilder instanceof ReportBuilder ? $this->makeDataTableWidget() : null;
     }
 
     /**
@@ -59,63 +63,44 @@ class SmartReports extends BaseDashboardWidget
         ];
     }
 
-    protected function prepareVars()
+    public function prepareVars(): void
     {
         $this->vars['widget'] = $this->smartWidget;
         $this->vars['widgetTitle'] = $this->reportBuilder?->name;
     }
 
-    public function loadAssets()
+    public function loadAssets(): void
     {
-        $this->addCss('igniterlabs.reports::/css/smartreports.css', 'smartreports-css');
-        $this->addJs('igniterlabs.reports::/js/smartreports.js', 'smartreports-js');
+        $this->addCss('css/smartreports.css', 'smartreports-css');
+        $this->addJs('js/smartreports.js', 'smartreports-js');
         $this->addCss('widgets/table.css', 'table-css');
         $this->addJs('widgets/table.js', 'table-js');
-    }
-
-    public function getStartDate(): mixed
-    {
-        if (method_exists(get_parent_class($this), 'getStartDate')) {
-            return parent::getStartDate();
-        }
-
-        return $this->property('startDate');
-    }
-
-    public function getEndDate(): mixed
-    {
-        if (method_exists(get_parent_class($this), 'getEndDate')) {
-            return parent::getEndDate();
-        }
-
-        return $this->property('endDate');
     }
 
     protected function loadReport(): void
     {
         if ($reportBuilderId = $this->property('report')) {
-            $this->reportBuilder = ReportBuilder::find($reportBuilderId);
+            $this->reportBuilder = ReportBuilder::query()->find($reportBuilderId);
         }
     }
 
     protected function makeDataTableWidget(): ?BaseFormWidget
     {
+        /** @var DataTable $dataTableWidget */
         $dataTableWidget = $this->makeFormWidget(DataTable::class, [
-            'name' => 'reportTable' . $this->reportBuilder->code,
+            'name' => 'reportTable'.$this->reportBuilder->code,
             'label' => lang('igniterlabs.reports::default.label_report_table'),
         ], [
             'model' => new ReportBuilder,
             'columns' => $this->reportBuilder->getSelectedColumns(),
             'useAjax' => true,
-            'alias' => $this->alias . 'ReportTable',
+            'alias' => $this->alias.'ReportTable',
         ]);
 
         $dataTableWidget->getTable()->unbindEvent(['table.getRecords', 'table.getDropdownOptions']);
-        $dataTableWidget->getTable()->bindEvent('table.getRecords', function (int $offset, int $limit) {
-            return $this->reportBuilder->getTableData(
-                $this->getStartDate(), $this->getEndDate(), $limit, ($offset / $limit) + 1
-            );
-        });
+        $dataTableWidget->getTable()->bindEvent('table.getRecords', fn(int $offset, int $limit): LengthAwarePaginator => $this->reportBuilder->getTableData(
+            $this->getStartDate(), $this->getEndDate(), $limit, ($offset / $limit) + 1
+        ));
 
         $dataTableWidget->bindToController();
 

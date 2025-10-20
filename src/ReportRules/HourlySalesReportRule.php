@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports\ReportRules;
 
 use Carbon\Carbon;
 use Igniter\Cart\Models\Menu;
 use Igniter\Cart\Models\Order;
-use IgniterLabs\Reports\Classes\BaseRule;
 use Igniter\Flame\Database\Builder;
 use Igniter\Flame\Database\Query\Builder as QueryBuilder;
+use IgniterLabs\Reports\Classes\BaseRule;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Override;
 
 class HourlySalesReportRule extends BaseRule
 {
@@ -30,8 +33,9 @@ class HourlySalesReportRule extends BaseRule
                 'type' => 'string',
                 'input' => 'select',
                 'multiple' => true,
-                'values' => collect(range(0, 23))->mapWithKeys(function ($hour) {
+                'values' => collect(range(0, 23))->mapWithKeys(function($hour): array {
                     $formattedHour = Carbon::createFromTime($hour)->format('g A');
+
                     return [$formattedHour => $formattedHour];
                 })->sortDesc()->toArray(),
                 'operators' => $this->getTextOperators(),
@@ -64,51 +68,50 @@ class HourlySalesReportRule extends BaseRule
     {
         return [
             'hours' => [
-                'title' => lang('igniterlabs.reports::default.label_hours')
+                'title' => lang('igniterlabs.reports::default.label_hours'),
             ],
             'sales' => [
-                'title' => lang('igniterlabs.reports::default.label_sales')
+                'title' => lang('igniterlabs.reports::default.label_sales'),
             ],
             'covers' => [
-                'title' => lang('igniterlabs.reports::default.label_covers')
+                'title' => lang('igniterlabs.reports::default.label_covers'),
             ], // covers represents number of unique menu item categories sold
             'orders' => [
-                'title' => lang('igniterlabs.reports::default.label_orders')
+                'title' => lang('igniterlabs.reports::default.label_orders'),
             ],
         ];
     }
 
     public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
     {
-        $orderTable = DB::getTablePrefix() . (new Order)->getTable();
-        $menusTable = DB::getTablePrefix() . (new Menu)->getTable();
+        $orderTable = DB::getTablePrefix().(new Order)->getTable();
+        $menusTable = DB::getTablePrefix().(new Menu)->getTable();
         $query = Order::query();
         $this->locationApplyScope($query);
 
         $baseQuery = $query
             ->whereBetween('order_date', [$start, $end])
             ->select([
-                DB::raw("SUM($orderTable.order_total) as sales"),
-                DB::raw("COUNT($orderTable.order_id) as orders"),
-                DB::raw("COUNT(DISTINCT $menusTable.menu_id) as covers"),
-                DB::raw("DATE_FORMAT($orderTable.order_time, '%l:00 %p') as hours"),
+                DB::raw(sprintf('SUM(%s.order_total) as sales', $orderTable)),
+                DB::raw(sprintf('COUNT(%s.order_id) as orders', $orderTable)),
+                DB::raw(sprintf('COUNT(DISTINCT %s.menu_id) as covers', $menusTable)),
+                DB::raw(sprintf("DATE_FORMAT(%s.order_time, '%%l:00 %%p') as hours", $orderTable)),
             ])
             ->join('order_menus', 'order_menus.order_id', '=', 'orders.order_id')
             ->join('menus', 'menus.menu_id', '=', 'order_menus.menu_id')
-            ->groupBy(DB::raw("HOUR($orderTable.order_time)"));
+            ->groupBy(DB::raw(sprintf('HOUR(%s.order_time)', $orderTable)));
 
         return DB::query()->fromSub($baseQuery, 'hourly_sales_report');
     }
 
+    #[Override]
     public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
     {
-        return $paginatedQuery->through(function ($report) {
-            return [
-                'hours' => $report->hours,
-                'sales' => currency_format($report->sales),
-                'covers' => $report->covers,
-                'orders' => $report->orders,
-            ];
-        });
+        return $paginatedQuery->through(fn($report): array => [
+            'hours' => $report->hours,
+            'sales' => currency_format($report->sales),
+            'covers' => $report->covers,
+            'orders' => $report->orders,
+        ]);
     }
 }
