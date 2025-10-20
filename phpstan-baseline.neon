@@ -1,0 +1,55 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Property IgniterLabs\\Reports\\DashboardWidgets\\SmartReports\:\:\$reportBuilder \(IgniterLabs\\Reports\\Models\\ReportBuilder\|null\) does not accept Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\|Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/DashboardWidgets/SmartReports.php
+
+		-
+			message: '#^Access to an undefined property Igniter\\Flame\\Database\\Model\:\:\$rule_class\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/FormWidgets/ReportEditor.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$count\.$#'
+			identifier: property.notFound
+			count: 2
+			path: src/Listeners/ExtendDashboardCharts.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$label\.$#'
+			identifier: property.notFound
+			count: 4
+			path: src/Listeners/ExtendDashboardCharts.php
+
+		-
+			message: '#^Method IgniterLabs\\Reports\\ReportRules\\DiscountBreakdownRule\:\:getReportQuery\(\) should return Igniter\\Flame\\Database\\Builder\|Igniter\\Flame\\Database\\Query\\Builder but returns Illuminate\\Database\\Query\\Builder\.$#'
+			identifier: return.type
+			count: 1
+			path: src/ReportRules/DiscountBreakdownRule.php
+
+		-
+			message: '#^Method IgniterLabs\\Reports\\ReportRules\\HourlySalesReportRule\:\:getReportQuery\(\) should return Igniter\\Flame\\Database\\Builder\|Igniter\\Flame\\Database\\Query\\Builder but returns Illuminate\\Database\\Query\\Builder\.$#'
+			identifier: return.type
+			count: 1
+			path: src/ReportRules/HourlySalesReportRule.php
+
+		-
+			message: '#^Method IgniterLabs\\Reports\\ReportRules\\MenuItemsReportRule\:\:getReportQuery\(\) should return Igniter\\Flame\\Database\\Builder\|Igniter\\Flame\\Database\\Query\\Builder but returns Illuminate\\Database\\Query\\Builder\.$#'
+			identifier: return.type
+			count: 1
+			path: src/ReportRules/MenuItemsReportRule.php
+
+		-
+			message: '#^Call to an undefined static method Igniter\\Local\\Models\\Location\:\:getOrderTypeOptions\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: src/ReportRules/OrderRule.php
+
+		-
+			message: '#^Method IgniterLabs\\Reports\\ReportRules\\OrderTransactionsRule\:\:getReportQuery\(\) should return Igniter\\Flame\\Database\\Builder\|Igniter\\Flame\\Database\\Query\\Builder but returns Illuminate\\Database\\Query\\Builder\.$#'
+			identifier: return.type
+			count: 1
+			path: src/ReportRules/OrderTransactionsRule.php
