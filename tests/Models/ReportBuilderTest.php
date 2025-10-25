@@ -61,7 +61,7 @@ it('throws exception when getting selected columns with non-existent rule class'
     $reportBuilder = new ReportBuilder;
     $reportBuilder->rule_class = 'NonExistentClass';
 
-    expect(fn(): array => $reportBuilder->getSelectedColumns())
+    expect($reportBuilder->getSelectedColumns(...))
         ->toThrow(FlashException::class);
 });
 
