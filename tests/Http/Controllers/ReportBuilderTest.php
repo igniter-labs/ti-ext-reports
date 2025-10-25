@@ -123,4 +123,3 @@ it('sets columns after creating report', function(): void {
     $report = ReportBuilder::where('name', 'Test Report')->first();
     expect($report->columns)->toEqual(['order_id', 'order_total']);
 });
-

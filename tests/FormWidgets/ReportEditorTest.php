@@ -48,3 +48,4 @@ it('gets save value', function(): void {
     expect($this->reportEditorWidget->getSaveValue(json_encode(['rule_data'])))->toBeArray()
         ->and($this->reportEditorWidget->getSaveValue(null))->toBeNull();
 });
+
