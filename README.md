@@ -20,41 +20,6 @@ The TastyIgniter Reports extension provides a powerful reporting and analytics t
 - Create custom queries to filter and analyze data based on specific criteria.
 - Clean, easy-to-read layout for busy managers.
 
-### Built-in report types
-
-The Reports extension comes with several pre-built report types:
-
-#### Orders Report
-Filter and analyze orders based on various criteria including:
-- Location
-- Customer information (name, email)
-- Order date
-- Order type (delivery, pickup, dine-in)
-
-#### Menu Items Report
-Analyze menu item performance showing:
-- Menu item name
-- Completed order amounts and quantities
-- Cancelled order amounts and quantities
-
-#### Hourly Sales Report
-Track sales performance throughout the day:
-- Sales broken down by hour
-- Order counts per hour
-- Revenue patterns by time of day
-
-#### Order Transactions Report
-Detailed view of order transactions including:
-- Payment information
-- Transaction details
-- Order status information
-
-#### Discount Breakdown Report
-Analyze discount usage and impact:
-- Coupon usage statistics
-- Discount amounts applied
-- Menu item discount analysis
-
 ## Documentation
 
 More documentation can be found on [here](https://github.com/igniter-labs/ti-ext-reports/blob/master/docs/index.md).
