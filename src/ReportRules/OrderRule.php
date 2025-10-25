@@ -111,7 +111,7 @@ class OrderRule extends BaseRule
                 'type' => 'string',
                 'input' => 'select',
                 'multiple' => true,
-                'values' => LocationModel::getOrderTypeOptions()->mapWithKeys(fn($name, $code): array => [$code => lang($name)])->all(),
+                'values' => LocationModel::getOrderTypeOptions()->mapWithKeys(fn(string $name, $code): array => [$code => lang($name)])->all(),
                 'operators' => $this->getOrderTypeOperators(),
             ],
             [
