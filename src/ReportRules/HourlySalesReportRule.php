@@ -1,0 +1,117 @@
+<?php
+
+declare(strict_types=1);
+
+namespace IgniterLabs\Reports\ReportRules;
+
+use Carbon\Carbon;
+use Igniter\Cart\Models\Menu;
+use Igniter\Cart\Models\Order;
+use Igniter\Flame\Database\Builder;
+use Igniter\Flame\Database\Query\Builder as QueryBuilder;
+use IgniterLabs\Reports\Classes\BaseRule;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Override;
+
+class HourlySalesReportRule extends BaseRule
+{
+    public function ruleDetails(): array
+    {
+        return [
+            'name' => lang('igniterlabs.reports::default.text_hourly_sales_report_title'),
+            'description' => lang('igniterlabs.reports::default.text_hourly_sales_report_description'),
+        ];
+    }
+
+    public function defineFilters(): array
+    {
+        return [
+            [
+                'id' => 'hours',
+                'label' => lang('igniterlabs.reports::default.label_hours'),
+                'type' => 'string',
+                'input' => 'select',
+                'multiple' => true,
+                'values' => collect(range(0, 23))->mapWithKeys(function($hour): array {
+                    $formattedHour = Carbon::createFromTime($hour)->format('g A');
+
+                    return [$formattedHour => $formattedHour];
+                })->sortDesc()->toArray(),
+                'operators' => $this->getTextOperators(),
+            ],
+            [
+                'id' => 'sales',
+                'label' => lang('igniterlabs.reports::default.label_sales'),
+                'type' => 'double',
+                'input' => 'number',
+                'operators' => $this->getNumericOperators(),
+            ],
+            [
+                'id' => 'covers',
+                'label' => lang('igniterlabs.reports::default.label_covers'),
+                'type' => 'integer',
+                'input' => 'number',
+                'operators' => $this->getNumericOperators(),
+            ],
+            [
+                'id' => 'orders',
+                'label' => lang('igniterlabs.reports::default.label_orders'),
+                'type' => 'integer',
+                'input' => 'number',
+                'operators' => $this->getNumericOperators(),
+            ],
+        ];
+    }
+
+    public function defineColumns(): array
+    {
+        return [
+            'hours' => [
+                'title' => lang('igniterlabs.reports::default.label_hours'),
+            ],
+            'sales' => [
+                'title' => lang('igniterlabs.reports::default.label_sales'),
+            ],
+            'covers' => [
+                'title' => lang('igniterlabs.reports::default.label_covers'),
+            ], // covers represents number of unique menu item categories sold
+            'orders' => [
+                'title' => lang('igniterlabs.reports::default.label_orders'),
+            ],
+        ];
+    }
+
+    public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
+    {
+        $orderTable = DB::getTablePrefix().(new Order)->getTable();
+        $menusTable = DB::getTablePrefix().(new Menu)->getTable();
+        $query = Order::query();
+        $this->locationApplyScope($query);
+
+        $baseQuery = $query
+            ->whereBetween('order_date', [$start, $end])
+            ->select([
+                DB::raw(sprintf('SUM(%s.order_total) as sales', $orderTable)),
+                DB::raw(sprintf('COUNT(%s.order_id) as orders', $orderTable)),
+                DB::raw(sprintf('COUNT(DISTINCT %s.menu_id) as covers', $menusTable)),
+                DB::raw(sprintf("DATE_FORMAT(%s.order_time, '%%l:00 %%p') as hours", $orderTable)),
+            ])
+            ->join('order_menus', 'order_menus.order_id', '=', 'orders.order_id')
+            ->join('menus', 'menus.menu_id', '=', 'order_menus.menu_id')
+            ->groupBy(DB::raw(sprintf('HOUR(%s.order_time)', $orderTable)));
+
+        return DB::query()->fromSub($baseQuery, 'hourly_sales_report');
+    }
+
+    #[Override]
+    public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
+    {
+        return $paginatedQuery->through(fn($report): array => [
+            'hours' => $report->hours,
+            'sales' => currency_format($report->sales),
+            'covers' => $report->covers,
+            'orders' => $report->orders,
+        ]);
+    }
+}

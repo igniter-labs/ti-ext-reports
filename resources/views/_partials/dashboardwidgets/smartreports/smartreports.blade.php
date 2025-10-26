@@ -5,5 +5,15 @@
     data-alias="{{ $this->alias }}"
     data-toolbar="false"
 >
-    {{ $dataTableWidget?->render() }}
+    @if($widgetTitle)
+        <h6 class="widget-title">
+            {{ $widgetTitle }}
+        </h6>
+    @endif
+
+        @if($widget)
+            {!! $widget->render() !!}
+        @else
+            <p class="text-muted">{{ lang('igniterlabs.reports::default.text_no_report_available_to_display') }}</p>
+        @endif
 </div>

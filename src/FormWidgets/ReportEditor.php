@@ -9,7 +9,11 @@ use Igniter\Admin\FormWidgets\DatePicker;
 use Igniter\Admin\Traits\FormModelWidget;
 use Igniter\Admin\Traits\ValidatesForm;
 use IgniterLabs\Reports\Classes\Manager;
+use Override;
 
+/**
+ * @protected $model ReportBuilder
+ */
 class ReportEditor extends BaseFormWidget
 {
     use FormModelWidget;
@@ -42,7 +46,8 @@ class ReportEditor extends BaseFormWidget
     protected function makeFilters(): array
     {
         $reportRule = resolve(Manager::class)->getRule($this->model->rule_class);
-        return collect($reportRule?->defineFilters() ?? [])->each(function(array $filter) {
+
+        return collect($reportRule->defineFilters() ?? [])->each(function(array $filter): void {
             match ($filter['input']) {
                 'datepicker' => $this->renderDatePickerInput($filter),
                 default => null,
@@ -65,8 +70,9 @@ class ReportEditor extends BaseFormWidget
         ])->render();
     }
 
+    #[Override]
     public function getSaveValue($value): mixed
     {
-        return json_decode($value, true);
+        return json_decode($value ?? '', true);
     }
 }

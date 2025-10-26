@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports\Http\Requests;
 
 use Igniter\System\Classes\FormRequest;
 use Illuminate\Validation\Rule;
+use Override;
 
 class ReportBuilderRequest extends FormRequest
 {
+    #[Override]
     public function attributes(): array
     {
         return [
@@ -26,7 +30,7 @@ class ReportBuilderRequest extends FormRequest
             'code' => ['required', 'alpha_dash', 'max:255', Rule::unique('reports_builder', 'code')->ignore($this->getRecordId())],
             'description' => ['nullable', 'string', 'max:500'],
             'rule_class' => ['sometimes', 'required', 'string'],
-            'rule_data' => ['sometimes', 'required', 'array'],
+            'rule_data' => ['sometimes', 'nullable', 'array'],
             'columns' => ['sometimes', 'nullable', 'array'],
             'columns.*' => ['required', 'string'],
         ];

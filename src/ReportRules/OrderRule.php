@@ -1,17 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IgniterLabs\Reports\ReportRules;
 
 use Igniter\Cart\Models\Category;
 use Igniter\Cart\Models\Menu;
 use Igniter\Cart\Models\Order;
 use Igniter\Flame\Database\Builder;
+use Igniter\Flame\Database\Query\Builder as QueryBuilder;
 use Igniter\Local\Facades\Location;
 use Igniter\Local\Models\Location as LocationModel;
 use Igniter\User\Facades\AdminAuth;
 use Igniter\User\Models\CustomerGroup;
 use IgniterLabs\Reports\Classes\BaseRule;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
+use Override;
 
 class OrderRule extends BaseRule
 {
@@ -106,7 +111,7 @@ class OrderRule extends BaseRule
                 'type' => 'string',
                 'input' => 'select',
                 'multiple' => true,
-                'values' => LocationModel::getOrderTypeOptions()->mapWithKeys(fn($name, $code) => [$code => lang($name)])->all(),
+                'values' => LocationModel::getOrderTypeOptions()->mapWithKeys(fn(string $name, $code): array => [$code => lang($name)])->all(),
                 'operators' => $this->getOrderTypeOperators(),
             ],
             [
@@ -139,17 +144,40 @@ class OrderRule extends BaseRule
     public function defineColumns(): array
     {
         return [
-            'customer_name' => lang('igniterlabs.reports::default.label_customer_name'),
-            'email' => lang('igniterlabs.reports::default.label_email'),
-            'order_total' => lang('igniterlabs.reports::default.label_order_date_relative'),
-            'order_date' => lang('igniterlabs.reports::default.label_order_date'),
-            'order_type' => lang('igniterlabs.reports::default.label_order_type'),
+            'customer_name' => [
+                'title' => lang('igniterlabs.reports::default.label_customer_name'),
+            ],
+            'email' => [
+                'title' => lang('igniterlabs.reports::default.label_email'),
+            ],
+            'order_total' => [
+                'title' => lang('igniterlabs.reports::default.label_order_total'),
+            ],
+            'order_date' => [
+                'title' => lang('igniterlabs.reports::default.label_order_date'),
+                'type' => 'date',
+            ],
+            'order_type' => [
+                'title' => lang('igniterlabs.reports::default.label_order_type'),
+            ],
         ];
     }
 
-    public function getReportQuery(Carbon $start, Carbon $end): Builder
+    public function getReportQuery(Carbon $start, Carbon $end): Builder|QueryBuilder
     {
         return Order::query()->whereBetween('order_date', [$start, $end]);
+    }
+
+    #[Override]
+    public function mapTableData(LengthAwarePaginator $paginatedQuery): LengthAwarePaginator
+    {
+        return $paginatedQuery->through(fn(Order $report): array => [
+            'customer_name' => $report->customer_name,
+            'email' => $report->email,
+            'order_total' => currency_format($report->order_total),
+            'order_date' => $report->order_datetime->isoFormat(lang('system::lang.moment.date_time_format')),
+            'order_type' => $report->order_type_name,
+        ]);
     }
 
     protected function getLocationIdOperators(): array
