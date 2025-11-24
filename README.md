@@ -22,7 +22,7 @@ The TastyIgniter Reports extension provides a powerful reporting and analytics t
 
 ## Documentation
 
-More documentation can be found on [here](https://github.com/igniter-labs/ti-ext-reports/blob/master/docs/index.md).
+More documentation can be found on [here](https://tastyigniter.com/docs/extensions/reports).
 
 ## Changelog
 
