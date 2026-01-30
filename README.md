@@ -24,10 +24,6 @@ The TastyIgniter Reports extension provides a powerful reporting and analytics t
 
 More documentation can be found on [here](https://tastyigniter.com/docs/extensions/reports).
 
-## Changelog
-
-Please see [CHANGELOG](https://github.com/igniter-labs/ti-ext-reports/blob/master/CHANGELOG.md) for more information on what has changed recently.
-
 ## Reporting issues
 
 If you encounter a bug in this extension, please report it using the [Issue Tracker](https://github.com/tastyigniter/TastyIgniter/issues) on GitHub.
