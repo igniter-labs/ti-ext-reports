@@ -11,6 +11,7 @@ use Igniter\Admin\FormWidgets\DataTable;
 use Igniter\Local\Traits\LocationAwareWidget;
 use IgniterLabs\Reports\Models\ReportBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Override;
 
 class SmartReports extends BaseDashboardWidget
 {
@@ -43,13 +44,14 @@ class SmartReports extends BaseDashboardWidget
     /**
      * Renders the widget.
      */
-    public function render()
+    public function render(): string
     {
         $this->prepareVars();
 
         return $this->makePartial('smartreports/smartreports');
     }
 
+    #[Override]
     public function defineProperties(): array
     {
         return [

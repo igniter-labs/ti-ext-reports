@@ -21,7 +21,7 @@ class ReportEditor extends BaseFormWidget
 
     public array $customFilterInputs = [];
 
-    public function render()
+    public function render(): string
     {
         $this->prepareVars();
 
